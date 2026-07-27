@@ -4,11 +4,11 @@ version = "0.5.1"
 edition = "2021"
 homepage = "https://mosek.com"
 description = "MOSEK backend for mosekcomodel"
-
 authors = [ "Ulf Worsøe <ulf.worsoe@mosek.com>" ]
 keywords = ["mosek","optimization","conic_optimization","linear_programming"]
 license = "MIT"
 categories = ["mathematics","science"]
+repository = "https://github.com/MOSEK/mosekcomodel.rust"
 
 [dependencies]
 mosek = "~11.2.0"
