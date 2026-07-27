@@ -1,7 +1,7 @@
 extern crate mosekcomodel;
 extern crate bevy;
 extern crate mosek;
-extern crate mosekcomodel_ellipsoids;
+extern crate mosekcomodel_util_ellipsoids;
 extern crate rand;
 
 use std::f64::consts::PI;
@@ -12,8 +12,8 @@ use bevy::ecs::component::Component;
 use bevy::math::{DMat3, DQuat, DVec3,Quat,Vec3,Mat3};
 use linalg::symsqrt3;
 
-use mosekcomodel_ellipsoids::Ellipsoid;
-use mosekcomodel_ellipsoids as ellipsoids;
+use mosekcomodel_util_ellipsoids::Ellipsoid;
+use mosekcomodel_util_ellipsoids as ellipsoids;
 use mosekcomodel::unbounded;
 use mosekcomodel_mosek::Model;
 use rand::Rng;
@@ -71,7 +71,7 @@ impl RandVec3 for rand::rngs::StdRng {
 
     fn drot(& mut self) -> DQuat {
         DQuat::from_axis_angle(self.ddir(), self.gen_range(0.0..2.0*std::f64::consts::PI))
-    }    
+    }
 }
 
 
@@ -152,7 +152,7 @@ fn main() {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>) 
+    mut materials: ResMut<Assets<StandardMaterial>>)
 {
 
     commands.spawn((
@@ -165,7 +165,7 @@ fn setup(
     //    mesh : meshes.add(Sphere::new(1.0)),
     //    material : materials.add(Color::srgba_u8(255,255, 255, 128)),
     //    ..default()},
-    //        BoundingEllipsoid{} 
+    //        BoundingEllipsoid{}
     //    ));
 
 
@@ -236,8 +236,8 @@ fn update_camera(time: Res<Time>, mut query: Query<(&mut Transform,&CameraTransf
 }
 
 #[allow(non_snake_case)]
-fn update(time       : Res<Time>, 
-          mut query  : Query<(&mut Transform, &EllipseTransform)>, 
+fn update(time       : Res<Time>,
+          mut query  : Query<(&mut Transform, &EllipseTransform)>,
           mut qbound : Query<&mut Transform, Without<EllipseTransform>>,
           mut gizmos : Gizmos) {
     let t = time.elapsed_secs();
@@ -285,12 +285,12 @@ fn update(time       : Res<Time>,
                                   m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
         // A² = P => A = sqrt(P)
         // Ab = q => b = A\q
-        
+
         let Psq = DMat3::from_cols_array(&[psol[0],psol[1],psol[2],psol[3],psol[4],psol[5],psol[6],psol[7],psol[8]]);
         let Pq  = DVec3::new(qsol[0],qsol[1],qsol[2]);
 
         let P   = symsqrt3(&Psq).unwrap();
-        let q   = P.inverse().mul_vec3(Pq); 
+        let q   = P.inverse().mul_vec3(Pq);
 
         let A   = P.inverse();
         let b   = -A.mul_vec3(q);
@@ -302,12 +302,12 @@ fn update(time       : Res<Time>,
             transform.rotation = rot.as_quat();
             transform.translation = tlate.as_vec3();
         }
-    } 
+    }
     else {
         for mut transform in & mut qbound {
             transform.scale = Vec3::new(0.001,0.001,0.001);
         }
-        
+
     }
 
 }
@@ -315,31 +315,31 @@ fn update(time       : Res<Time>,
 mod linalg {
     use bevy::math::{DMat3, DVec3,DQuat};
     use mosek::syevd;
-    /// Compute the symmetric square root of (symmetric) A by using eigenvector decomposition as 
+    /// Compute the symmetric square root of (symmetric) A by using eigenvector decomposition as
     /// ```math
     /// A = B'DB = (B'D^{1/2}B)^2 => √A = B' D^{1/2} B
     /// ```
     /// where `B` is the matrix of eigenvectors (orthogonal basis) and `D` is the diagonal matrix
-    /// of eigenvalues. 
+    /// of eigenvalues.
     ///
     /// # Arguments
     /// - `A` a positive definite matrix
     #[allow(non_snake_case)]
     pub fn symsqrt3(A : &DMat3) -> Result<DMat3,String> {
         let mut A = A.to_cols_array();
-        let mut w = [0f64;3]; 
+        let mut w = [0f64;3];
         syevd(mosek::Uplo::LO,3,&mut A,&mut w)?;
         if w.iter().any(|&v| v <= 0.0) { return Err("A is not positive definite".to_string()) }
         w.iter_mut().for_each(|v| *v = v.sqrt());
         //println!("-- eig vals : {:?}",w);
-        
+
         let d = DVec3::new(w[0],w[1],w[2]);
         let U = DMat3::from_cols_array(&A);
         let D = DMat3::from_diagonal(d);
-    
+
         Ok(U.mul_mat3(&D).mul_mat3(&U.transpose()))
     }
-    
+
     #[allow(non_snake_case)]
     pub fn axb_to_srt(A : &DMat3, b : &DVec3) -> (DVec3, DQuat, DVec3) {
         let mut evecs = A.to_cols_array();
@@ -434,16 +434,16 @@ mod test {
 
                 // A² = P => A = sqrt(P)
                 // Ab = q => b = A\q
-                
+
                 let Psq = DMat3::from_cols_array(&[psol[0],psol[1],psol[2],psol[3],psol[4],psol[5],psol[6],psol[7],psol[8]]);
                 let Pq  = DVec3::new(qsol[0],qsol[1],qsol[2]);
-                
+
                 let P   = linalg::symsqrt3(&Psq).unwrap();
                 let q   = P.inverse().mul_vec3(Pq);
 
                 let A    = P.inverse();
                 let b    = - A.mul_vec3(q);
-                
+
                 let Pinv = P.inverse();
 
                 // Verify that the solution satisfies constraint for all ellipsoids
@@ -471,7 +471,7 @@ mod test {
                     // This matrix must be negative semi definite
                     mosek::syevd(mosek::Uplo::LO, 7, &mut mx, & mut ev).unwrap();
                     assert!(* ev.iter().max_by(|a,b| a.total_cmp(b)).unwrap() < 0.00001);
-                    
+
                     let (ep,eq) = e.get_Pq();
                     let eq = DVec3::from_array(eq);
                     let ep = DMat3::from_cols(DVec3::from_array(ep[0]),DVec3::from_array(ep[1]),DVec3::from_array(ep[2]));
@@ -510,7 +510,7 @@ mod test {
                             {
                                 // the rotation,scale,translate should also map into the interior of
                                 // the the solution sphere {x:||Px+q||<=1}
-                                
+
                                 let p = rot.mul_vec3(DMat3::from_diagonal(scl).mul_vec3(v))+tlate;
                                 assert!((P.mul_vec3(p)+q).length() <= 1.00001);
                                 assert!(A.inverse().mul_vec3(p-b).length() <= 1.00001);
@@ -551,8 +551,8 @@ mod test {
 
             // Test that AA' == symA symA
             assert!((A.mul_mat3(&A.transpose()) - symA.mul_mat3(&symA)).to_cols_array().iter().map(|v| v.abs()).sum::<f64>() < 0.00001);
-                
-            // Check that A and symA maps to the same ellipsoid, i.e. 
+
+            // Check that A and symA maps to the same ellipsoid, i.e.
             // || A^{-1} * symA * v || = 1 for all v:||v|| = 1, or equivalently
             //
             // A^{-1} * symA defines an orthogonal basis
@@ -582,7 +582,7 @@ mod test {
                 //         v, A.inverse().mul_vec3(symA.mul_vec3(v)).length(),
                 //         symA.inverse().mul_vec3(A.mul_vec3(v)).length());
 
-                //// Check that A and symA maps to the same ellipsoid, i.e. 
+                //// Check that A and symA maps to the same ellipsoid, i.e.
                 //// A^{-1} * symA * v
                 //assert!((A.inverse().mul_vec3(symA.mul_vec3(v)).length()-1.0).abs() < 0.00001);
                 //assert!((symA.inverse().mul_vec3(A.mul_vec3(v)).length()-1.0).abs() < 0.00001);
@@ -609,7 +609,7 @@ mod test {
             let q = m.variable(None, unbounded().with_shape(&[3]));
 
             m.objective(None, mosekcomodel::Sense::Maximize, &t);
-           
+
             let (tau,e) = {
                 let A = symA;
                 let b = DVec3::ZERO;
@@ -640,10 +640,10 @@ mod test {
                 let Pinv = P.inverse();
                 let q = Pinv.mul_vec3(DVec3::new(qsol[0],qsol[1],qsol[2]));
                 //assert!(Pq.length() < 0.0001);
-               
+
 
                 // Verify that the solution actually satisfies the PSD constraint
-                if let Ok(tau) = m.primal_solution(mosekcomodel::SolutionType::Default,&tau) 
+                if let Ok(tau) = m.primal_solution(mosekcomodel::SolutionType::Default,&tau)
                 {
                     let (a,b,c) = e.get_Abc();
                     let b = DVec3::from_array(b);
@@ -667,7 +667,7 @@ mod test {
                     // This matrix must be negative semi definite
                     mosek::syevd(mosek::Uplo::LO, 7, &mut mx, & mut ev).unwrap();
                     assert!(* ev.iter().max_by(|a,b| a.total_cmp(b)).unwrap() < 0.00001);
-                    
+
                     let (ep,eq) = e.get_Pq();
                     let eq = DVec3::from_array(eq);
                     let ep = DMat3::from_cols(DVec3::from_array(ep[0]),DVec3::from_array(ep[1]),DVec3::from_array(ep[2]));
@@ -678,15 +678,15 @@ mod test {
                         let r = P.mul_mat3(&ep.inverse()).mul_vec3(v - eq) + q;
                         assert!(r.length() < 1.00001);
                     }
-                    
+
                     println!("ep   = {:?}\nsymA = {:?}",ep,symA);
                 }
-                
+
 
 
                 let Z = Pinv;
                 let w = Z.mul_vec3(q);
-               
+
                 // Test that P (nearly) contains A
 
                 for v in (0..NSAMPLE).map(|_| R.dball()) {
@@ -705,7 +705,7 @@ mod test {
                     // Check that the decomposition of P is correct. If P maps a point on the unit ball
                     // to a point on the ellipsoid, then the decomposition into scale and rotation
                     // should map it back on the unit ball (although to a different point).
-                    
+
                     let mut evecs = Z.to_cols_array();
                     let mut evals = [0.0; 3];
                     mosek::syevd(mosek::Uplo::LO, 3, & mut evecs, &mut evals).unwrap();
@@ -715,7 +715,7 @@ mod test {
 
                     // Verify that decomposition is as expected
                     assert!(scl.inverse().mul_vec3(evecm.inverse().mul_vec3(Z.mul_vec3(v))).length() < 1.00001 );
-                    
+
                     // Verify that scale, rotation maps to the same ellipsoid as Z
 
                     assert!((scale_inv.mul_vec3(rot_inv.mul_vec3(Z.mul_vec3(v))).length()-1.0).abs() <= 0.00001);
@@ -741,4 +741,3 @@ mod test {
         }
     }
 }
-

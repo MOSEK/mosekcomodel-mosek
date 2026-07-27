@@ -2,7 +2,7 @@ extern crate glam;
 extern crate bevy;
 extern crate rand;
 extern crate mosekcomodel;
-extern crate mosekcomodel_ellipsoids;
+extern crate mosekcomodel_util_ellipsoids;
 
 use bevy::math::{DMat3, DVec3};
 use bevy::prelude::*;
@@ -13,12 +13,12 @@ use bevy::reflect::Reflect;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::{Duration, SystemTime};
-use mosekcomodel_ellipsoids::Ellipsoid;
+use mosekcomodel_util_ellipsoids::Ellipsoid;
 use glam::{DMat2,DVec2};
 use itertools::izip;
 use mosekcomodel::unbounded;
 use mosekcomodel_mosek::Model;
-use mosekcomodel_ellipsoids as ellipsoids;
+use mosekcomodel_util_ellipsoids as ellipsoids;
 
 use std::f32::consts::PI;
 
@@ -142,12 +142,12 @@ fn update_camera(time: Res<Time>, mut query: Query<(&mut Transform,&CameraTransf
         let tf = Transform::from_xyz(camloc.x,camloc.y,camloc.z).looking_at(Vec3::ZERO, Vec3::Y);
         transform.clone_from(&tf);
     }
-    
+
 }
 #[allow(non_snake_case)]
-fn update(time: Res<Time>, 
-          mut query: Query<(&mut Transform, &MyObject)>, 
-          mut qbound: Query<(&mut Transform, &BoundingEllipsoid), Without<MyObject>>, 
+fn update(time: Res<Time>,
+          mut query: Query<(&mut Transform, &MyObject)>,
+          mut qbound: Query<(&mut Transform, &BoundingEllipsoid), Without<MyObject>>,
           mut gizmos: Gizmos) {
     //let t = (time.elapsed_secs().sin() + 1.) / 2.;
     let t = time.elapsed_secs();
@@ -180,16 +180,16 @@ fn update(time: Res<Time>,
         let t = m.variable(None, unbounded());
         let p = ellipsoids::det_rootn(None, & mut m, t.clone(), 3);
         let q = m.variable(None, unbounded().with_shape(&[3]));
-  
+
         m.objective(None, mosekcomodel::Sense::Maximize, &t);
 
         ellipsoids::ellipsoid_contains_points(& mut m, &p, &q, points.as_slice());
 
         m.solve();
-  
+
         if let (Ok(psol),Ok(qsol)) = (m.primal_solution(mosekcomodel::SolutionType::Default,&p),
                                       m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
-            
+
             let A = DMat3::from_cols_array(&[psol[0],psol[1],psol[2],psol[3],psol[4],psol[5],psol[6],psol[7],psol[8]]).inverse();
             let b = -A.mul_vec3(DVec3::new(qsol[0],qsol[1],qsol[2]));
 
@@ -240,5 +240,3 @@ mod linalg {
         (scl,rot,tlate)
     }
 }
-
-

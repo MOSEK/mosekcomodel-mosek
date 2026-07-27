@@ -8,9 +8,9 @@ glam = "0.28.0"
 itertools = "0.14.0"
 mosek = "*"
 rand = "0.8.5"
-mosekcomodel = "0.4.3"
-mosekcomodel_mosek = "0.4.1" 
-mosekcomodel_ellipsoids = { path = "../../../../mosekcomodel-ellipsoids", version = "0.1.0"  }
+mosekcomodel = "0.5.1"
+mosekcomodel_mosek = "0.5.1"
+mosekcomodel_util_ellipsoids = "0.1.1"
 
 [profile.dev.package."*"]
 opt-level = 3

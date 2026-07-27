@@ -1995,8 +1995,8 @@ dependencies = [
  "gtk4",
  "itertools 0.13.0",
  "mosekcomodel",
- "mosekcomodel_ellipsoids",
  "mosekcomodel_mosek",
+ "mosekcomodel_util_ellipsoids",
 ]
 
 [[package]]
@@ -2007,8 +2007,8 @@ dependencies = [
  "itertools 0.14.0",
  "mosek",
  "mosekcomodel",
- "mosekcomodel_ellipsoids",
  "mosekcomodel_mosek",
+ "mosekcomodel_util_ellipsoids",
  "rand 0.8.5",
 ]
 
@@ -3023,6 +3023,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b4baf93f58d4425749ca49a51c50ebab072c5df6994d08fed93541c331481dc"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3195,8 +3204,8 @@ dependencies = [
  "gtk4",
  "itertools 0.13.0",
  "mosekcomodel",
- "mosekcomodel_ellipsoids",
  "mosekcomodel_mosek",
+ "mosekcomodel_util_ellipsoids",
 ]
 
 [[package]]
@@ -3208,8 +3217,8 @@ dependencies = [
  "itertools 0.14.0",
  "mosek",
  "mosekcomodel",
- "mosekcomodel_ellipsoids",
  "mosekcomodel_mosek",
+ "mosekcomodel_util_ellipsoids",
  "rand 0.8.5",
 ]
 
@@ -3301,9 +3310,9 @@ dependencies = [
 
 [[package]]
 name = "mosek"
-version = "11.0.16"
+version = "11.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e784f08e0a8cf49f476293b36a777fd639530172fb64d66c1755f7dbe42a4ad0"
+checksum = "50eaa800a8f9bd032818db4b3c1efb6be39cf240b1ec566719f4d6a6e4419fc5"
 dependencies = [
  "itertools 0.10.5",
  "libc",
@@ -3311,30 +3320,31 @@ dependencies = [
 
 [[package]]
 name = "mosekcomodel"
-version = "0.4.3"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "510ebfd6a0835ced24b60e0394d563415e6f1481ca20848547f38bb3c673448d"
+checksum = "2b1bc07dd2f7f09475675477f95b6bb1af105082def9b664f40be44c9fdd73a6"
 dependencies = [
  "itertools 0.14.0",
- "mosek",
-]
-
-[[package]]
-name = "mosekcomodel_ellipsoids"
-version = "0.1.0"
-dependencies = [
- "itertools 0.13.0",
- "mosekcomodel",
 ]
 
 [[package]]
 name = "mosekcomodel_mosek"
-version = "0.4.1"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "044235769cd344bfaa24040839149cbd6f722797940f320c4e7c712d97931ce4"
+checksum = "a4f73555dcfe5ccc6241ca825ae21a93e0b9d4a1e247c969e205e3214f8a0c09"
 dependencies = [
  "itertools 0.14.0",
  "mosek",
+ "mosekcomodel",
+]
+
+[[package]]
+name = "mosekcomodel_util_ellipsoids"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "437af672ff4f328a1baaa13bf75ae906c5084a3c9fb63ea985d00314690dcb1a"
+dependencies = [
+ "itertools 0.15.0",
  "mosekcomodel",
 ]
 

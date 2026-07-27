@@ -14,7 +14,7 @@ use cairo::Context;
 use gtk::{glib,Application, DrawingArea, ApplicationWindow};
 use mosekcomodel::*;
 use mosekcomodel_mosek::Model;
-use mosekcomodel_ellipsoids as ellipsoids;
+use mosekcomodel_util_ellipsoids as ellipsoids;
 
 const APP_ID : &str = "com.mosek.lowner-john";
 
@@ -30,7 +30,7 @@ struct DrawData {
 
     t0     : SystemTime,
 
-    // Bounding ellipsoid as { x : || Ax+b || < 1 } 
+    // Bounding ellipsoid as { x : || Ax+b || < 1 }
     tpoints : Vec<[f64;2]>,
     Pc : Option<([f64;4],[f64;2])>,
     Zw : Option<([f64;4],[f64;2])>,
@@ -42,7 +42,7 @@ struct DrawData {
 pub fn main() -> glib::ExitCode {
     //let mut drawdata = Rc::new(RefCell::new(DrawData{
     let mut drawdata = DrawData{
-        points : vec![ 
+        points : vec![
             [-0.25,0.0],[-0.1,0.4],[0.2,-0.1],
             [0.0,0.0],[0.0,0.4],[0.4,0.4],[0.4,0.0],
             [0.0,-0.1],[0.2,-0.1],[0.4,-0.2],[0.1,-0.4],[-0.2,-0.2]
@@ -80,9 +80,9 @@ fn build_ui(app   : &Application,
     // tx Send info from solver to GUI
     // rtx Send commands from GUI to solver
     let data = Rc::new(RefCell::new(ddata.clone()));
-    
+
     let darea = DrawingArea::builder()
-        .width_request(800) 
+        .width_request(800)
         .height_request(800)
         .build();
 
@@ -97,12 +97,12 @@ fn build_ui(app   : &Application,
         .title("Hello Löwner-John")
         .child(&darea)
         .build();
-    
+
     { // Time callback
         let data = data.clone();
         let darea = darea.clone();
         glib::source::timeout_add_local(
-            Duration::from_millis(10), 
+            Duration::from_millis(10),
             move || {
                 let mut data = data.borrow_mut();
                 let dt = 0.001 * (SystemTime::now().duration_since(data.t0).unwrap().as_millis() as f64) * SPEED_SCALE;
@@ -127,7 +127,7 @@ fn build_ui(app   : &Application,
                     }).collect();
                 data.tpoints = tpoints;
 
-                // Compute outer 
+                // Compute outer
                 {
                     let mut m = Model::new(None);
                     let t = m.variable(None, unbounded());
@@ -147,7 +147,7 @@ fn build_ui(app   : &Application,
                         data.Pc = None;
                     }
                 }
-  
+
                 // Inner
                 {
                     let mut m = Model::new(None);
@@ -168,9 +168,9 @@ fn build_ui(app   : &Application,
                                                b.iter_mut()) {
                         a[0] = p0[1]-p1[1];
                         a[1] = p1[0]-p0[0];
-                        *b = a[0] * p0[0] + a[1] * p0[1]; 
+                        *b = a[0] * p0[0] + a[1] * p0[1];
                     }
-                        
+
                     ellipsoids::ellipsoid_subject_to(& mut m, &P, &q, A.as_slice(), b.as_slice());
 
                     m.solve();
@@ -187,7 +187,7 @@ fn build_ui(app   : &Application,
                 darea.queue_draw();
                 ControlFlow::Continue
             });
-    }    
+    }
 
     window.present();
 }

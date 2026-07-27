@@ -5,7 +5,7 @@ extern crate mosekcomodel;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::{Duration, SystemTime};
-use mosekcomodel_ellipsoids::{Ellipsoid,det_rootn,ellipsoid_contains,ellipsoid_contained};
+use mosekcomodel_util_ellipsoids::{Ellipsoid,det_rootn,ellipsoid_contains,ellipsoid_contained};
 use glam::{DMat2,DVec2};
 use gtk::glib::ControlFlow;
 use gtk::prelude::*;
@@ -30,7 +30,7 @@ struct DrawData {
 
     // Fixed ellipsoids
     Abs : Vec<([f64;4],[f64;2])>,
-    // Bounding ellipsoid as { x : || Px+q || < 1 } 
+    // Bounding ellipsoid as { x : || Px+q || < 1 }
     Pc : Option<([f64;4],[f64;2])>,
     Qd : Option<([f64;4],[f64;2])>,
 }
@@ -67,13 +67,13 @@ pub fn main() -> glib::ExitCode {
 #[allow(non_snake_case)]
 fn build_ui(app   : &Application,
             ddata : &DrawData)
-{    
+{
     // tx Send info from solver to GUI
     // rtx Send commands from GUI to solver
     let data = Rc::new(RefCell::new(ddata.clone()));
-    
+
     let darea = DrawingArea::builder()
-        .width_request(800) 
+        .width_request(800)
         .height_request(800)
         .build();
 
@@ -88,12 +88,12 @@ fn build_ui(app   : &Application,
         .title("Hello Löwner-John")
         .child(&darea)
         .build();
-    
+
     { // Time callback
         let data = data.clone();
         let darea = darea.clone();
         glib::source::timeout_add_local(
-            Duration::from_millis(10), 
+            Duration::from_millis(10),
             move || {
                 let mut data = data.borrow_mut();
                 let dt = 0.001 * (SystemTime::now().duration_since(data.t0).unwrap().as_millis() as f64);
@@ -105,22 +105,22 @@ fn build_ui(app   : &Application,
 
                         let (cost,sint) = ((theta_l/2.0).cos() , (theta_l/2.0).sin());
                         let A = [ cost.powi(2)*r[0]+sint.powi(2)*r[1], cost*sint*(r[1]-r[0]),
-                                  cost*sint*(r[1]-r[0]), sint.powi(2) * r[0] + cost.powi(2) * r[1] ];                            
+                                  cost*sint*(r[1]-r[0]), sint.powi(2) * r[0] + cost.powi(2) * r[1] ];
                         let b = [ theta_g.cos()*c[0] - theta_g.sin()*c[1],
                                   theta_g.sin()*c[0] + theta_g.cos()*c[1]];
                         (A,b)
                     }).collect();
 
-                      
+
                 {
                     // outer ellipsoid
                     let mut m = Model::new(None);
                     let t = m.variable(None, unbounded());
                     let p = det_rootn(None, & mut m, t.clone(), 2);
                     let q = m.variable(None, unbounded().with_shape(&[2]));
-  
+
                     m.objective(None, mosekcomodel::Sense::Maximize, &t);
-                   
+
                     for (A,b) in data.Abs.iter() {
                         let A = DMat2::from_cols_array(A).inverse();
                         let b = A.mul_vec2(DVec2{x:b[0], y:b[1]}).to_array();
@@ -131,10 +131,10 @@ fn build_ui(app   : &Application,
                     }
 
                     m.solve();
-  
+
                     if let (Ok(psol),Ok(qsol)) = (m.primal_solution(mosekcomodel::SolutionType::Default,&p),
                                                   m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
-                        
+
                         // A² = P => A = sqrt(P)
                         // Ab = q => A\q
                         let s = (psol[0]*psol[3]-psol[1]*psol[2]).sqrt();
@@ -186,7 +186,7 @@ fn build_ui(app   : &Application,
                 darea.queue_draw();
                 ControlFlow::Continue
             });
-    }    
+    }
 
     window.present();
 }
@@ -226,7 +226,7 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
         context.arc(0.0, 0.0, 1.0, 0.0, std::f64::consts::PI*2.0);
         context.set_matrix(cairo::Matrix::new(2.0,0.0,0.0,2.0,0.0,0.0));
         _ = context.stroke();
-   
+
         context.set_matrix(mx);
     }
 
@@ -241,7 +241,7 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
         context.arc(0.0, 0.0, 1.0, 0.0, std::f64::consts::PI*2.0);
         context.set_matrix(cairo::Matrix::new(2.0,0.0,0.0,2.0,0.0,0.0));
         _ = context.stroke();
-   
+
         context.set_matrix(mx);
     }
 }
