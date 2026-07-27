@@ -11,7 +11,7 @@ license = "MIT"
 categories = ["mathematics","science"]
 
 [dependencies]
-mosek = "~11.1.0"
+mosek = "~11.2.0"
 itertools = "0.14"
 mosekcomodel = "~0.5.0"
 

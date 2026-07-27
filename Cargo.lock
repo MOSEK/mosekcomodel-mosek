@@ -265,9 +265,9 @@ checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
 
 [[package]]
 name = "mosek"
-version = "11.1.0"
+version = "11.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "654a368c089d37b45a02443e3759333edbb0f180cfd5cf83c8f15648fee29c9e"
+checksum = "50eaa800a8f9bd032818db4b3c1efb6be39cf240b1ec566719f4d6a6e4419fc5"
 dependencies = [
  "itertools 0.10.5",
  "libc",
@@ -275,9 +275,9 @@ dependencies = [
 
 [[package]]
 name = "mosekcomodel"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "135f77021d140be64411e1c44fc17e9c261b67ab195e746f1c7af981fee0a0f3"
+checksum = "2b1bc07dd2f7f09475675477f95b6bb1af105082def9b664f40be44c9fdd73a6"
 dependencies = [
  "itertools 0.14.0",
 ]
