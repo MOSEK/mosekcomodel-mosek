@@ -15,9 +15,9 @@ fn milo1() -> (SolutionStatus,Result<Vec<f64>,String>) {
     let a1 : &[f64] = &[ 3.0,  -2.0 ];
 
     let c : &[f64] = &[ 1.0, 0.64 ];
-   
+
     let mut m = Model::new(Some("milo1"));
-    
+
     let x = m.variable(Some("x"), greater_than(0.0).with_shape(&[2]).integer());
 
     // Create the constraints
@@ -47,9 +47,9 @@ fn milo1() -> (SolutionStatus,Result<Vec<f64>,String>) {
     m.solve();
 
     // Get the solution values
-    let (psta,_) = m.solution_status(SolutionType::Default);
+    let (psta,_) = m.solution_status(0);
 
-    (psta,m.primal_solution(SolutionType::Default, &x))
+    (psta,m.primal_solution(0, &x))
 }
 
 
@@ -58,4 +58,3 @@ fn main() {
     println!("Status = {:?}",psta);
     println!("x = {:?}", xx.unwrap());
 }
-

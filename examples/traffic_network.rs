@@ -24,8 +24,8 @@ use mosekcomodel::*;
 use mosekcomodel_mosek::Model;
 
 pub fn traffic_network_model(
-    arcs   : &[Arc], 
-    nodes  : &[Node]) -> (Vec<f64>,Vec<[usize;2]>,Vec<f64>) 
+    arcs   : &[Arc],
+    nodes  : &[Node]) -> (Vec<f64>,Vec<[usize;2]>,Vec<f64>)
 {
     let mut model = Model::new(Some("TrafficNetwork"));
     let m = arcs.len();
@@ -79,8 +79,8 @@ pub fn traffic_network_model(
 
     model.solve();
 
-    let (xsol,sp) = model.sparse_primal_solution(SolutionType::Default, &x).unwrap();
-    let tsol = xsol.iter().zip(arcs.iter()).map(|(&x,a)| a.base_travel_time + a.traffic_sensitivity * x / (1.0 - x/a.capacity)).collect(); 
+    let (xsol,sp) = model.sparse_primal_solution(0, &x).unwrap();
+    let tsol = xsol.iter().zip(arcs.iter()).map(|(&x,a)| a.base_travel_time + a.traffic_sensitivity * x / (1.0 - x/a.capacity)).collect();
 
     (xsol,sp,tsol)
 }

@@ -11,7 +11,7 @@ use mosekcomodel_mosek::Model;
 ///     maximize   expected return - alpha * variance
 ///     subject to the constraints
 /// ```
-/// 
+///
 /// # Arguments
 /// - `n`: Number of assets
 /// - `mu`: An n dimmensional vector of expected returns
@@ -37,9 +37,9 @@ fn efficient_frontier( n : usize,
     model.constraint(Some("budget"), x.sum(), equal_to(w + x0.iter().sum::<f64>()));
 
     // Computes the risk
-    model.constraint(Some("variance"), 
-                     vstack![s.to_expr().flatten(), 
-                             Expr::from(0.5).flatten(), 
+    model.constraint(Some("variance"),
+                     vstack![s.to_expr().flatten(),
+                             Expr::from(0.5).flatten(),
                              GT.clone().mul(&x)], in_rotated_quadratic_cone());
 
     // Solve the problem for many values of parameter alpha
@@ -50,8 +50,8 @@ fn efficient_frontier( n : usize,
         model.solve();
 
         (alpha,
-         model.primal_solution(SolutionType::Default, &x).unwrap().iter().zip(mu.iter()).map(|(&a,&b)| a*b).sum::<f64>(),
-         model.primal_solution(SolutionType::Default, &s).unwrap()[0])
+         model.primal_solution(0, &x).unwrap().iter().zip(mu.iter()).map(|(&a,&b)| a*b).sum::<f64>(),
+         model.primal_solution(0, &s).unwrap()[0])
     }).collect()
 }
 
@@ -80,7 +80,7 @@ fn main() {
     println!("Efficient frontier") ;
     println!("-------------------------------------------------------------------------------------\n");
     println!("{:-12}  {:-12}  {:-12}", "alpha", "return", "std. dev.");
-   
+
     for (alpha,fmux,s) in res.iter() {
       println!("\t{:-12.4}  {:-12.4e}  {:-12.4e}", alpha, fmux, s.sqrt());
     }

@@ -27,7 +27,7 @@ fn main() {
     // Create the conic constraints
     model.constraint(None,
                      vstack![x.index([0..2]),
-                             x3.flatten()], 
+                             x3.flatten()],
                      in_power_cone(&[0.2,0.8]));
     model.constraint(None,
                      vstack![x.index([2..3]).to_expr(),
@@ -38,16 +38,16 @@ fn main() {
     // Set the objective function
     let cval : &[f64] = &[1.0, 1.0, -1.0];
     model.objective(None,
-                    Sense::Maximize, 
-                    cval.dot(vstack![x3.with_shape(&[1]), 
-                                     x4.clone().with_shape(&[1]), 
+                    Sense::Maximize,
+                    cval.dot(vstack![x3.with_shape(&[1]),
+                                     x4.clone().with_shape(&[1]),
                                      x.clone().index([0..1])]));
 
     // Solve the problem
     model.solve();
 
     // Get the linear solution values
-    let solx = model.primal_solution(SolutionType::Default,&x).unwrap();
+    let solx = model.primal_solution(0,&x).unwrap();
     println!("x, y, z = {}, {}, {}", solx[0], solx[1], solx[2]);
 }
 

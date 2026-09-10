@@ -8,8 +8,8 @@ glam = "0.28.0"
 itertools = "0.14.0"
 mosek = "*"
 rand = "0.8.5"
-mosekcomodel = "0.5.1"
-mosekcomodel_mosek = "0.5.1"
+mosekcomodel = "0.6.0"
+mosekcomodel_mosek = { version = "0.6.0", path = "../../../" }
 mosekcomodel_util_ellipsoids = "0.1.1"
 
 [profile.dev.package."*"]

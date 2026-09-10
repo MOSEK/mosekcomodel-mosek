@@ -13,7 +13,7 @@ use mosekcomodel_mosek::Model;
 
 fn main() {
     //fixed cells in human readable (i.e. 1-based) format
-    let hr_fixed = [ 
+    let hr_fixed = [
         [1, 5, 4],
         [2, 2, 5], [2, 3, 8], [2, 6, 3],
         [3, 2, 1], [3, 4, 2], [3, 5, 8], [3, 7, 9],
@@ -22,7 +22,7 @@ fn main() {
         [7, 3, 4], [7, 5, 6], [7, 6, 5], [7, 8, 8],
         [8, 4, 4], [8, 7, 1], [8, 8, 6],
         [9, 5, 9]
-    ];    
+    ];
 
 
     let m = 3;
@@ -53,15 +53,15 @@ fn main() {
         }
     }
 
-    model.constraint(None, 
-                     stackvec(0,fixed.iter().map(|&i| x.index(i).reshape(&[1]) ).collect::<Vec<Variable<1>>>()), 
+    model.constraint(None,
+                     stackvec(0,fixed.iter().map(|&i| x.index(i).reshape(&[1]) ).collect::<Vec<Variable<1>>>()),
                      equal_to(1.0));
 
     model.solve();
 
     //print the solution, if any...
-    
-    let (psta,_) = model.solution_status(SolutionType::Default);
+
+    let (psta,_) = model.solution_status(0);
 
     if let SolutionStatus::Optimal = psta {
         let mut unfilled = vec![0usize;n*n];
@@ -71,10 +71,10 @@ fn main() {
         println!("Puzzle:");
         print_solution(m, &unfilled.as_slice());
 
-        let res = model.primal_solution(SolutionType::Default, &x).unwrap();
+        let res = model.primal_solution(0, &x).unwrap();
         let mut filled = vec![0usize;n*n];
-    
-        for ((_i,_j),k,r) in 
+
+        for ((_i,_j),k,r) in
             izip!(iproduct!(0..n,0..n),
                   res.chunks(n).map(|vv| vv.iter().enumerate().find_map(|(i,&v)| if v > 0.5 { Some(i+1) } else { None }).unwrap_or(0)),
                   filled.iter_mut()) {
@@ -90,7 +90,7 @@ fn main() {
 
 fn print_solution(m : usize, data : &[usize]) {
     let n = m * m;
-    
+
     for ((i,j),&v) in iproduct!(0..n,0..n).zip(data.iter()) {
         if i % m == 0 && j % n == 0 { println!(" +-------+-------+-------+"); }
         if j % m == 0 { print!(" |"); }
@@ -100,4 +100,3 @@ fn print_solution(m : usize, data : &[usize]) {
     }
     println!(" +-------+-------+-------+");
 }
-

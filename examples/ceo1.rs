@@ -32,13 +32,13 @@ fn main() {
     m.solve();
 
     // Get the linear solution values
-    let solx = m.primal_solution(SolutionType::Default, &x).unwrap();
+    let solx = m.primal_solution(0, &x).unwrap();
     println!("x1,x2,x3 = {}, {}, {}", solx[0], solx[1], solx[2]);
 
     // Get conic solution of expc
-    let  expclvl = m.primal_solution(SolutionType::Default, &expc).unwrap();
-    let  expcsn  = m.dual_solution(SolutionType::Default, &expc).unwrap();
-    
+    let  expclvl = m.primal_solution(0, &expc).unwrap();
+    let  expcsn  = m.dual_solution(0, &expc).unwrap();
+
     println!("expc levels = {:?}", expclvl);
 
     println!("expc dual conic var levels = {:?}", expcsn);

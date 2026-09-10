@@ -19,17 +19,17 @@ use mosekcomodel_mosek::Model;
 /// * `n` Number of assets
 /// * `mu` An n dimensional vector of expected returns
 /// * `GT` A matrix with n columns so (GT')*GT  = covariance matrix
-/// * `x0` Initial holdings 
+/// * `x0` Initial holdings
 /// * `w` Initial cash holding
 /// * `gamma` Maximum risk (=std. dev) accepted
 /// * `f` If asset j is traded then a fixed cost f_j must be paid
 /// * `g` If asset j is traded then a cost g_j must be paid for each unit traded
 /// Output:
-///    `(xsol,ysol,zsol)`, where 
+///    `(xsol,ysol,zsol)`, where
 ///    * `xsol` is the amounts traded for each asset
 ///    * `ysol` are the binary variables indicating whether an asset is traded
 ///    * `zsol` are the transaction costs imposed on the trade
-///    Optimal expected return and the optimal portfolio     
+///    Optimal expected return and the optimal portfolio
 #[allow(non_snake_case)]
 fn markowitz_with_transactions_cost( mu : &[f64],
                                      GT : &NDArray<2>,
@@ -48,8 +48,8 @@ fn markowitz_with_transactions_cost( mu : &[f64],
     // Defines the variables. No shortselling is allowed.
     let x = model.variable(Some("x"), greater_than(vec![0.0; n]));
 
-    // Additional Some("helper") variables 
-    let z = model.variable(Some("z"), unbounded().with_shape(&[n]));   
+    // Additional Some("helper") variables
+    let z = model.variable(Some("z"), unbounded().with_shape(&[n]));
     // Binary variables
     let y = model.variable(Some("y"), greater_than(vec![0.0; n]).integer());
     _ = model.constraint(None, &y, less_than(vec![1.0; n]));
@@ -58,17 +58,17 @@ fn markowitz_with_transactions_cost( mu : &[f64],
     model.objective(Some("obj"), Sense::Maximize, mu.dot(&x));
 
     // Invest amount + transactions costs = initial wealth
-    _ = model.constraint(Some("budget"), 
+    _ = model.constraint(Some("budget"),
                         x.sum().add(f.dot(&y)).add(g.dot(&z)),
                         equal_to(w0));
 
     // Imposes a bound on the risk
-    _ = model.constraint(Some("risk"), 
+    _ = model.constraint(Some("risk"),
                          Expr::from(gamma).reshape(&[1])
                             .vstack( GT.mul(&x) ),
                             in_quadratic_cone());
 
-    // z >= |x-x0| 
+    // z >= |x-x0|
     _ = model.constraint(Some("buy"), z.sub(&x).sub(Expr::from(x0)), greater_than(vec![0.0;n]));
     _ = model.constraint(Some("sell"), z.sub(Expr::from(x0).sub(&x)), greater_than(vec![0.0; n]));
     // Alternatively, formulate the two constraints as
@@ -77,14 +77,14 @@ fn markowitz_with_transactions_cost( mu : &[f64],
     // Constraints for turning y off and on. z-diag(u)*y<=0 i.e. z_j <= u_j*y_j
     _ = model.constraint(Some("y_on_off"), z.sub(y.mul_elem(u)), less_than(vec![0.0;n]));
 
-    // Integer optimization problems can be very hard to solve so limiting the 
+    // Integer optimization problems can be very hard to solve so limiting the
     // maximum amount of time is a valuable safe guard
-    model.set_parameter("MSK_DPAR_MIO_MAX_TIME", 180.0); 
+    model.set_parameter("MSK_DPAR_MIO_MAX_TIME", 180.0);
     model.solve();
 
-    ( model.primal_solution(SolutionType::Integer, &x).unwrap(),
-      model.primal_solution(SolutionType::Integer, &y).unwrap(),
-      model.primal_solution(SolutionType::Integer, &z).unwrap() )
+    ( model.primal_solution(0, &x).unwrap(),
+      model.primal_solution(0, &y).unwrap(),
+      model.primal_solution(0, &z).unwrap() )
 }
 
 #[allow(non_snake_case)]

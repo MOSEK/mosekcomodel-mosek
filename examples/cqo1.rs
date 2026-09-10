@@ -61,14 +61,14 @@ fn main() {
 
     // Get the linear solution values
 
-    let solx = m.primal_solution(SolutionType::Default,&x);
-    let soly = m.primal_solution(SolutionType::Default,&y);
+    let solx = m.primal_solution(0,&x);
+    let soly = m.primal_solution(0,&y);
     println!("x = {:?}", solx);
     println!("y = {:?}", soly);
 
     // Get conic solution of qc1
-    let qc1lvl = m.primal_solution(SolutionType::Default,&qc1);
-    let qc1sn  = m.dual_solution(SolutionType::Default,&qc1);
+    let qc1lvl = m.primal_solution(0,&qc1);
+    let qc1sn  = m.dual_solution(0,&qc1);
 
     println!("qc1 levels = {:?}", qc1lvl);
     println!("qc1 dual conic var levels = {:?}", qc1sn);

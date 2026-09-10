@@ -3,7 +3,7 @@
 //!
 //! File:      `total_variation.rs`
 //!
-//! Purpose:   Demonstrates how to solve a total 
+//! Purpose:   Demonstrates how to solve a total
 //!            variation problem using the Fusion API.
 //!
 
@@ -37,7 +37,7 @@ fn total_var(sigma : f64, f : &NDArray<2>) -> (Model,Variable<2>,Constraint<0>) 
 
     M.constraint( Some("Delta"), stack![2; t.reshape(&[n,m,1]), deltax, deltay], in_quadratic_cones(&[n,m,3], 2));
 
-    let c = M.constraint(Some("TotalVar"), 
+    let c = M.constraint(Some("TotalVar"),
                          sigma.into_expr().reshape(&[1,1])
                             .vstack(f.to_expr().sub(ucore).reshape(&[n*m,1]))
                             .flatten(),
@@ -71,11 +71,11 @@ fn main() {
         let sigma_val = sigma * (m*n) as f64;
 
         M.update(&sigma_con, sigma_val);
-        // Example: Linear signal with Gaussian noise    
-       
+        // Example: Linear signal with Gaussian noise
+
         M.solve();
 
-        let _sol = M.primal_solution(SolutionType::Default, &ucore).unwrap();
+        let _sol = M.primal_solution(0, &ucore).unwrap();
         // Now use the solution
         // ...
 
@@ -84,7 +84,7 @@ fn main() {
 
         println!("rel_sigma = {}  total_var = {}",
                  sigma,
-                 M.primal_objective(SolutionType::Default).unwrap());
+                 M.primal_objective(0).unwrap());
 
     }
 }

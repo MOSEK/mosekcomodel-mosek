@@ -46,9 +46,10 @@
 //! m.solve();
 //!
 //! // Get the solution values
-//! let (psta,dsta) = m.solution_status(SolutionType::Default);
+//! let (psta,dsta) = m.solution_status(0);
 //! println!("Status = {:?}/{:?}",psta,dsta);
-//! let xx = m.primal_solution(SolutionType::Default,&x);
+//! let solidx = 0;
+//! let xx = m.primal_solution(solidx,&x);
 //! println!("x = {:?}", xx);
 //! ```
 //!
@@ -98,7 +99,7 @@
 //!     // Solves the model.
 //!     model.solve();
 //!
-//!     let xlvl = model.primal_solution(SolutionType::Default, &x).unwrap();
+//!     let xlvl = model.primal_solution(0, &x).unwrap();
 //!     mu.iter().zip(xlvl.iter()).map(|(&a,&b)| a*b).sum()
 //! }
 //!
@@ -1041,7 +1042,7 @@ impl BaseModelTrait for MosekModel {
     }
 
 
-    fn solve(& mut self, sol_bas : & mut Solution, sol_itr : &mut Solution, sol_itg : &mut Solution) -> Result<(),String>
+    fn solve(& mut self, solutions : & mut Vec<Solution>) -> Result<(),String>
     {
         self.task.put_int_param(mosek::Iparam::REMOVE_UNUSED_SOLUTIONS, 1).unwrap();
         if let Some((hostname,accesstoken)) = self.optserver_host.as_ref() {
@@ -1082,17 +1083,28 @@ impl BaseModelTrait for MosekModel {
         for &whichsol in [mosek::Soltype::BAS,
                           mosek::Soltype::ITR,
                           mosek::Soltype::ITG].iter() {
-            let sol : & mut Solution = match whichsol {
-                mosek::Soltype::BAS => sol_bas,
-                mosek::Soltype::ITR => sol_itr,
-                mosek::Soltype::ITG => sol_itg,
-                _ => sol_itr
-            };
-            if ! self.task.solution_def(whichsol).unwrap() {
-                sol.primal.status = SolutionStatus::Undefined;
-                sol.dual.status   = SolutionStatus::Undefined;
-            }
-            else {
+
+            if self.task.solution_def(whichsol).unwrap() {
+                solutions.push(Default::default());
+                let sol = solutions.last_mut().unwrap();
+                sol.kind = match whichsol {
+                    mosek::Soltype::BAS => SolutionType::Basic,
+                    mosek::Soltype::ITG => SolutionType::Integer,
+                    mosek::Soltype::ITR => SolutionType::Interior,
+                    _ => SolutionType::Unknown
+                };
+
+                // let sol : & mut Solution = match whichsol {
+                //     mosek::Soltype::BAS => sol_bas,
+                //     mosek::Soltype::ITR => sol_itr,
+                //     mosek::Soltype::ITG => sol_itg,
+                //     _ => sol_itr
+                // };
+                // if ! self.task.solution_def(whichsol).unwrap() {
+                //     sol.primal.status = SolutionStatus::Undefined;
+                //     sol.dual.status   = SolutionStatus::Undefined;
+                // }
+                // else {
                 let (psta,dsta) = split_sol_sta(whichsol,self.task.get_sol_sta(whichsol).unwrap());
                 sol.primal.status = psta;
                 sol.dual.status   = dsta;
@@ -1663,7 +1675,7 @@ impl PSDModelTrait for MosekModel {
         let mxs : Vec<i64> = (0..dim).flat_map(|i| std::iter::repeat(i).zip(0..i+1))
             .map(|(i,j)| self.task.append_sparse_sym_mat(dim,&[i],&[j],&[1.0]).unwrap())
             .collect::<Vec<i64>>();
-        self.task.put_afe_g_list(&afeidxs, &r.fix);
+        self.task.put_afe_g_list(&afeidxs, &r.fix).unwrap();
 
         self.task.append_acc_seq(dom, afe0, &vec![0.0; afeidxs.len()]).unwrap();
         //self.task.put_con_bound_slice(con0,con0+i32::try_from(rnelm).unwrap(),&vec![mosek::Boundkey::FX; nelm],&r.fix,&r.fix).unwrap();
@@ -2107,7 +2119,7 @@ mod tests {
         m.solve();
         m.write_problem("psd.ptf");
 
-        let csol = m.primal_solution(SolutionType::Default, &c).unwrap();
+        let csol = m.primal_solution(0, &c).unwrap();
 
         let shape = [3,2,3];
         let m1 : Vec<f64> = shape.index_iterator().zip(csol.iter()).filter_map(|(index,v)| if index[1] == 0 { Some(*v) } else { None } ).collect();
@@ -2135,14 +2147,14 @@ mod tests {
         m.solve();
 
         {
-            let r = m.evaluate_primal(SolutionType::Default, &x).unwrap();
+            let r = m.evaluate_primal(0, &x).unwrap();
             let (shape,sp,val) = r.dissolve();
             assert!( sp.is_none());
             assert_eq!(shape,[6]);
             assert_eq!(val,&[1.0,2.0,3.0,4.0,5.0,6.0]);
         }
         {
-            let r = m.evaluate_primal(SolutionType::Default, x.add(y.mul(2.0))).unwrap();
+            let r = m.evaluate_primal(0, x.add(y.mul(2.0))).unwrap();
             let (shape,sp,val) = r.dissolve();
             assert!(sp.is_none());
             assert_eq!(shape,[6]);

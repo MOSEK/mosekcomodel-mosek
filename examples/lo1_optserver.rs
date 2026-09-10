@@ -5,11 +5,11 @@
 //!
 //! Demonstrates how to solve a small problem using MOSEK Optserver. To test, start optserverlight
 //! included with the MOSEK distro, e.g.
-//! ```sh 
+//! ```sh
 //! optserverlight -port 9999
 //! ```
-//! then run this example as 
-//! ```sh 
+//! then run this example as
+//! ```sh
 //! lo1_optserver http://localhost:9999
 //! ```
 //!
@@ -45,10 +45,10 @@ fn lo1(hostname : String, accesstoken : Option<String>) -> (SolutionStatus,Solut
     m.solve();
 
     // Get the solution values
-    let (psta,dsta) = m.solution_status(SolutionType::Default);
-    let xx = m.primal_solution(SolutionType::Default,&x);
+    let (psta,dsta) = m.solution_status(0);
+    let xx = m.primal_solution(0,&x);
 
-    (psta,dsta,m.primal_solution(SolutionType::Default,&x))
+    (psta,dsta,m.primal_solution(0,&x))
 }
 
 fn main() {

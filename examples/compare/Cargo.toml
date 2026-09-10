@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mosekcomodel = { version = "0.1.0-alpha.2", path = "../.." }
+mosekcomodel = "~0.6.0"
 
 [[bin]]
 name = "mul2"

@@ -9,7 +9,7 @@
 //! min   <C1,X1> + <C2,X2>
 //! st.   <A1,X1> + <A2,X2> = b
 //!             (X2)_{1,2} <= k
-//! 
+//!
 //! where X1, X2 are symmetric positive semidefinite,
 //!
 //! C1, C2, A1, A2 are assumed to be constant symmetric matrices,/
@@ -57,11 +57,11 @@ fn main() {
 
     // Retrieve result
     {
-        let X1 : Vec<[f64;3]> = m.primal_solution(SolutionType::Default, &X1).unwrap()
+        let X1 : Vec<[f64;3]> = m.primal_solution(0, &X1).unwrap()
             .chunks(3)
             .map(|c| [c[0],c[1],c[2]])
             .collect();
-        let X2 : Vec<[f64; 4]> = m.primal_solution(SolutionType::Default, &X2).unwrap()
+        let X2 : Vec<[f64; 4]> = m.primal_solution(0, &X2).unwrap()
             .chunks(4)
             .map(|c| [c[0],c[1],c[2],c[3]])
             .collect();

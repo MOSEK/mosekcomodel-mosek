@@ -24,7 +24,7 @@ fn main() {
     let _ingredientnames = [ "Flour", "Sugar", "Butter" ];
     let stock : &[f64] = &[ 150.0,   22.0,    25.0 ];
 
-    let recipe_data : &[f64] = &[3.0, 5.0, 
+    let recipe_data : &[f64] = &[3.0, 5.0,
                                  1.0, 0.5,
                                  1.2, 0.5 ];
     let product_names = [ "Cakes", "Breads" ];
@@ -48,7 +48,7 @@ fn main() {
 
     // We solve and fetch the solution:
     model.solve();
-    let res = model.primal_solution(SolutionType::Default, &production).unwrap();
+    let res = model.primal_solution(0, &production).unwrap();
     println!("Solution:");
     for (n,r) in product_names.iter().zip(res.iter()) {
         println!(" Number of {} : {}",n,r);

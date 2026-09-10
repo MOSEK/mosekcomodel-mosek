@@ -13,18 +13,18 @@ use mosekcomodel::*;
 use mosekcomodel_mosek::Model;
 
 /// # Description
-/// 
+///
 /// Extends the basic Markowitz model with cardinality constraints.
 ///
 /// # Arguments
 /// * `n` Number of assets
 /// * `mu` An n dimensional vector of expected returns
 /// * `GT` A matrix with n columns so (GT')*GT  = covariance matrix
-/// * `x0` Initial holdings 
+/// * `x0` Initial holdings
 /// * `w` Initial cash holding
 /// * `gamma` Maximum risk (=std. dev) accepted
 /// * `k` Maximum number of assets on which we allow to change position.
-/// 
+///
 /// # Returns
 /// Optimal expected return and the optimal portfolio.
 #[allow(non_upper_case_globals)]
@@ -45,7 +45,7 @@ fn markowitz_with_cardinality(mu : &[f64],
     // Defines the variables. No shortselling is allowed.
     let x = model.variable(Some("x"), nonnegative().with_shape(&[n]));
 
-    // Additional "helper" variables 
+    // Additional "helper" variables
     let z = model.variable(Some("z"), unbounded().with_shape(&[n]));
     // Binary variables  - do we change position in assets
     let (y,_) = model.variable(Some("y"), in_range(0.0,1.0).with_shape(&[n]).integer());
@@ -61,24 +61,24 @@ fn markowitz_with_cardinality(mu : &[f64],
     // Imposes a bound on the risk
     _ = model.constraint(Some("risk"), Expr::from(gamma).reshape(&[1]).vstack(GT.mul(&x)), in_quadratic_cone());
 
-    // z >= |x-x0| 
+    // z >= |x-x0|
     _ = model.constraint(Some("buy"), z.sub(x.sub(Expr::from(x0))), greater_than(vec![0.0; n]));
     _ = model.constraint(Some("sell"), z.sub(Expr::from(x0).sub(&x)), greater_than(vec![0.0; n]));
 
     // Constraints for turning y off and on. z-diag(u)*y<=0 i.e. z_j <= u_j*y_j
-    _ = model.constraint(Some("y_on_off"), z.sub(y.mul_elem(u)), less_than(0.0)); 
+    _ = model.constraint(Some("y_on_off"), z.sub(y.mul_elem(u)), less_than(0.0));
 
     // At most K assets change position
     _ = model.constraint(Some("cardinality"), y.sum().sub(Expr::from(K as f64)), less_than(0.0));
 
-    // Integer optimization problems can be very hard to solve so limiting the 
+    // Integer optimization problems can be very hard to solve so limiting the
     // maximum amount of time is a valuable safe guard
     model.set_parameter("MSK_DPAR_MIO_MAX_TIME",180.0);
 
     // Solve multiple instances by varying the parameter K
     model.solve();
 
-    model.primal_solution(SolutionType::Integer,&x).unwrap()
+    model.primal_solution(0,&x).unwrap()
 }
 
 #[allow(non_upper_case_globals)]
@@ -109,9 +109,9 @@ fn main() {
     println!("Markowitz portfolio optimization with cardinality constraints");
     println!("-----------------------------------------------------------------------------------\n");
     for (K,xsol) in xsols.iter().enumerate() {
-        println!("Bound: {}   Expected return: {:.4}  Solution {:?}", 
-                 K+1, 
-                 mu.iter().zip(xsol.iter()).map(|(a,b)| a*b).sum::<f64>(), 
+        println!("Bound: {}   Expected return: {:.4}  Solution {:?}",
+                 K+1,
+                 mu.iter().zip(xsol.iter()).map(|(a,b)| a*b).sum::<f64>(),
                  xsol.as_slice());
     }
 }

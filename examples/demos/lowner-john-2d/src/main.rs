@@ -139,8 +139,8 @@ fn build_ui(app   : &Application,
 
                     m.solve();
 
-                    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(mosekcomodel::SolutionType::Default,&p),
-                                                  m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
+                    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(0,&p),
+                                                  m.primal_solution(0,&q)) {
                         data.Pc = Some(([psol[0],psol[1],psol[2],psol[3]],[qsol[0],qsol[1]]));
                     }
                     else {
@@ -175,8 +175,8 @@ fn build_ui(app   : &Application,
 
                     m.solve();
 
-                    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(mosekcomodel::SolutionType::Default,&P),
-                                                  m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
+                    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(0,&P),
+                                                  m.primal_solution(0,&q)) {
                         data.Zw = Some(([psol[0],psol[1],psol[2],psol[3]],[qsol[0],qsol[1]]));
                     }
                     else {

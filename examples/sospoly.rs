@@ -39,16 +39,16 @@ use mosekcomodel_mosek::Model;
 fn hankel(n : usize, i_ : isize, a : f64) -> NDArray<2> {
     if i_ < 0 || i_ as usize > 2*n {
         matrix::zeros([n+1,n+1])
-    } 
+    }
     else {
         let i = i_ as usize;
         if i < n + 1 {
             matrix::sparse([n+1, n+1],
                            (0..i+1).rev().zip(0..i+1).map(|(i,j)| [i,j]).collect::<Vec<[usize;2]>>(),
                            vec![a; i+1].as_slice())
-        } 
+        }
         else {
-            matrix::sparse([n+1, n+1], 
+            matrix::sparse([n+1, n+1],
                            (i-n..n+1).rev().zip(i-n..n+1).map(|(i,j)| [i,j]).collect::<Vec<[usize;2]>>(),
                            vec![a; 2*n+1].as_slice())
         }
@@ -59,7 +59,7 @@ fn hankel(n : usize, i_ : isize, a : f64) -> NDArray<2> {
 #[allow(unused)]
 fn nn_inf(model : & mut Model, x : & Variable<1>) {
     let m = x.shape()[0] - 1;
-    let n = m / 2; 
+    let n = m / 2;
     // Setup variables
     let barx = model.variable(None, in_psd_cone().with_dim(n+1));
 
@@ -74,19 +74,19 @@ fn nn_inf(model : & mut Model, x : & Variable<1>) {
 fn nn_semiinf(m : & mut Model, x : & Variable<1>) {
     let n = x.shape()[0] - 1;
     let n1 = n / 2;
-    let n2 = (n - 1) / 2;  
+    let n2 = (n - 1) / 2;
 
     // Setup variables
     let barx1 = m.variable(None, in_psd_cone().with_dim(n1+1));
     let barx2 = m.variable(None, in_psd_cone().with_dim(n2+1));
 
     // x_i = Tr H(n1, i) * X1 + Tr H(n2,i-1) * X2, i=0,...,n
-    
+
     for i in 0..n+1 {
         m.constraint(None, x.index(i).sub(hankel(n1,i as isize,1.0).dot(&barx1).add(hankel(n2,i as isize -1,1.0).dot(&barx2))), equal_to(0.0));
     }
     for i in 0..n+1 {
-        m.constraint(None, 
+        m.constraint(None,
                      x.index(i).sub(
                         hankel(n1,i as isize,1.0).dot(&barx1).add(
                             hankel(n2, i as isize -1, 1.0).dot(&barx2))),
@@ -104,7 +104,7 @@ fn nn_finite(model : & mut Model, x : & Variable<1>, a : f64, b : f64) {
         let barx2 = model.variable(None,in_psd_cone().with_dim(n));
 
         // x_i = Tr H(n,i)*X1 + (a+b)*Tr H(n-1,i-1) * X2 - a*b*Tr H(n-1,i)*X2 - Tr H(n-1,i-2)*X2, i=0,...,m
-    
+
         for i in 1..m+1 {
             _ = model.constraint(
                 None,
@@ -120,7 +120,7 @@ fn nn_finite(model : & mut Model, x : & Variable<1>, a : f64, b : f64) {
 
         // x_i = Tr H(n,i-1)*X1 - a*Tr H(n,i)*X1 + b*Tr H(n,i)*X2 - Tr H(n,i-1)*X2, i=0,...,m
         for i in 1..m+1 {
-            _ = model.constraint( 
+            _ = model.constraint(
                 None,
                 x.index(i)
                     .sub(
@@ -138,7 +138,7 @@ fn diff(model : & mut Model, x : & Variable<1>) -> Variable<1> {
     let n = x.shape()[0]-1;
     let u = model.variable(None, n);
     _ = model.constraint(None,
-                         u.reshape(&[n,1]).sub(x.index(1..n+1).reshape(&[n,1]).mul_elem(matrix::dense([n,1],(1..n+1).map(|v| v as f64).collect::<Vec<f64>>().as_slice()))), 
+                         u.reshape(&[n,1]).sub(x.index(1..n+1).reshape(&[n,1]).mul_elem(matrix::dense([n,1],(1..n+1).map(|v| v as f64).collect::<Vec<f64>>().as_slice()))),
                          equal_to(vec![0.0;n].as_slice()).with_shape(&[n,1]));
     u
 }
@@ -167,7 +167,7 @@ fn fitpoly(data : & NDArray<2>, n : usize) -> Vec<f64> {
                          ub.sub(vstack![z.sub(dx.index(0..1)), dx.index(1..n)]),
                          equal_to(vec![0.0; n]));
 
-    nn_finite(&mut model, &ub, datacof[0], datacof[datacof.len()-datadim[1]]); 
+    nn_finite(&mut model, &ub, datacof[0], datacof[datacof.len()-datadim[1]]);
 
     // f'(t) + z >= 0, for all t \in [a, b]
     let lb = model.variable(None,n);
@@ -179,7 +179,7 @@ fn fitpoly(data : & NDArray<2>, n : usize) -> Vec<f64> {
 
     model.objective(None, Sense::Minimize, &z.index(0));
     model.solve();
-    model.primal_solution(SolutionType::Interior, &x).unwrap()
+    model.primal_solution(0, &x).unwrap()
 }
 
 
@@ -188,7 +188,7 @@ fn main() {
                              vec![ -1.0, 1.0,
                                     0.0, 0.0,
                                     1.0, 1.0 ]);
-    
+
     let x2 = fitpoly(&data, 2);
     let x4 = fitpoly(&data, 4);
     let x8 = fitpoly(&data, 8);

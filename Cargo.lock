@@ -230,6 +230,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b4baf93f58d4425749ca49a51c50ebab072c5df6994d08fed93541c331481dc"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -275,16 +284,16 @@ dependencies = [
 
 [[package]]
 name = "mosekcomodel"
-version = "0.5.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b1bc07dd2f7f09475675477f95b6bb1af105082def9b664f40be44c9fdd73a6"
+checksum = "1106a2d7f6c405871361c15e7daca5a3e19bffd69553484a7a450a1a01cc5da7"
 dependencies = [
- "itertools 0.14.0",
+ "itertools 0.15.0",
 ]
 
 [[package]]
 name = "mosekcomodel_mosek"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "criterion",
  "itertools 0.14.0",

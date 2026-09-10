@@ -1994,7 +1994,7 @@ dependencies = [
  "glam 0.28.0",
  "gtk4",
  "itertools 0.13.0",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
  "mosekcomodel_mosek",
  "mosekcomodel_util_ellipsoids",
 ]
@@ -2006,7 +2006,7 @@ dependencies = [
  "bevy",
  "itertools 0.14.0",
  "mosek",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
  "mosekcomodel_mosek",
  "mosekcomodel_util_ellipsoids",
  "rand 0.8.5",
@@ -3203,7 +3203,7 @@ dependencies = [
  "glam 0.28.0",
  "gtk4",
  "itertools 0.13.0",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
  "mosekcomodel_mosek",
  "mosekcomodel_util_ellipsoids",
 ]
@@ -3216,7 +3216,7 @@ dependencies = [
  "glam 0.28.0",
  "itertools 0.14.0",
  "mosek",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
  "mosekcomodel_mosek",
  "mosekcomodel_util_ellipsoids",
  "rand 0.8.5",
@@ -3328,14 +3328,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "mosekcomodel_mosek"
-version = "0.5.1"
+name = "mosekcomodel"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4f73555dcfe5ccc6241ca825ae21a93e0b9d4a1e247c969e205e3214f8a0c09"
+checksum = "1106a2d7f6c405871361c15e7daca5a3e19bffd69553484a7a450a1a01cc5da7"
+dependencies = [
+ "itertools 0.15.0",
+]
+
+[[package]]
+name = "mosekcomodel_mosek"
+version = "0.6.0"
 dependencies = [
  "itertools 0.14.0",
  "mosek",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
 ]
 
 [[package]]
@@ -3345,7 +3352,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "437af672ff4f328a1baaa13bf75ae906c5084a3c9fb63ea985d00314690dcb1a"
 dependencies = [
  "itertools 0.15.0",
- "mosekcomodel",
+ "mosekcomodel 0.5.1",
 ]
 
 [[package]]
@@ -4840,7 +4847,7 @@ dependencies = [
  "gtk4",
  "image",
  "itertools 0.13.0",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
  "mosekcomodel_mosek",
  "rand 0.9.2",
 ]
@@ -4937,7 +4944,7 @@ dependencies = [
  "glam 0.28.0",
  "gtk4",
  "itertools 0.13.0",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
  "mosekcomodel_mosek",
 ]
 
@@ -4949,7 +4956,7 @@ dependencies = [
  "gtk4",
  "itertools 0.13.0",
  "mosek",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
  "mosekcomodel_mosek",
 ]
 
@@ -4960,7 +4967,7 @@ dependencies = [
  "cairo-rs",
  "gtk4",
  "itertools 0.14.0",
- "mosekcomodel",
+ "mosekcomodel 0.6.0",
  "mosekcomodel_mosek",
  "rand 0.9.2",
 ]

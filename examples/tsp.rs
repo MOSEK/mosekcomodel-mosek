@@ -35,23 +35,23 @@ fn tsp(n : usize, A : & NDArray<2>, C : &NDArray<2>, remove_selfloops: bool, rem
 
     {
         let x = x.clone();
-        M.set_int_solution_callback(move |sol| 
+        M.set_int_solution_callback(move |sol|
             if let Ok(xx) = sol.try_get(&x) {
                 println!("New Solution ({}): {:?}",sol.obj(),xx)
             });
     }
-   
+
     for it in 0.. {
         println!("--------------------\nIteration {}",it);
         M.solve();
 
-        println!("\nsolution cost: {}", M.primal_objective(SolutionType::Integer).unwrap());
+        println!("\nsolution cost: {}", M.primal_objective(0).unwrap());
         println!("\nsolution:");
 
         let mut cycles : Vec<Vec<[usize;2]>> = Vec::new();
 
         for i in 0..n {
-            let xi = M.primal_solution(SolutionType::Integer, &(&x).index([i..i+1, 0..n])).unwrap();
+            let xi = M.primal_solution(0, &(&x).index([i..i+1, 0..n])).unwrap();
             println!("x[{{}},:] = {:?}",xi);
 
             for (j,_xij) in xi.iter().enumerate().filter(|(_,&v)| v > 0.5) {
@@ -68,14 +68,14 @@ fn tsp(n : usize, A : & NDArray<2>, C : &NDArray<2>, remove_selfloops: bool, rem
         println!("\ncycles: {:?}",cycles);
 
         if cycles.len() == 1 {
-            return (M.primal_solution(SolutionType::Integer, &x).unwrap(), cycles[0].clone())
+            return (M.primal_solution(0, &x).unwrap(), cycles[0].clone())
         }
 
         for c in cycles.iter_mut() {
             c.sort_by_key(|i| i[0]*n+i[1]);
             let ni = c.len();
-            M.constraint(Some(format!("cycle-{:?}",c).as_str()), 
-                         x.dot(matrix::sparse([n,n], c.to_vec(), vec![1.0; ni])), 
+            M.constraint(Some(format!("cycle-{:?}",c).as_str()),
+                         x.dot(matrix::sparse([n,n], c.to_vec(), vec![1.0; ni])),
                          less_than((ni-1) as f64));
         }
     }

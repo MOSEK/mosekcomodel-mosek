@@ -6,7 +6,7 @@
 //! Purpose: Demonstrates how to solve the problem
 //! ```
 //! maximize 3*x0 + 1*x1 + 5*x2 + x3
-//! such that              
+//! such that
 //!          3*x0 + 1*x1 + 2*x2        = 30,
 //!          2*x0 + 1*x1 + 3*x2 + 1*x3 > 15,
 //!                 2*x1 +      + 3*x3 < 25
@@ -44,12 +44,12 @@ fn lo1() -> (SolutionStatus,SolutionStatus,Result<Vec<f64>,String>) {
     m.solve();
 
     // Get the solution values
-    let (psta,dsta) = m.solution_status(SolutionType::Default);
+    let (psta,dsta) = m.solution_status(0);
     println!("Status = {:?}/{:?}",psta,dsta);
-    let xx = m.primal_solution(SolutionType::Default,&x);
+    let xx = m.primal_solution(0,&x);
     println!("x = {:?}", xx);
 
-    (psta,dsta,m.primal_solution(SolutionType::Default,&x))
+    (psta,dsta,m.primal_solution(0,&x))
 }
 
 fn main() {

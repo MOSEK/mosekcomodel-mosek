@@ -4,17 +4,17 @@
 //! File :      `sdo3.rs`
 //!
 //! Purpose :   Solves the semidefinite problem:
-//! ``` 
+//! ```
 //! min   tr(X_1) + ... + tr(X_n)
 //! st.   <A_11,X_1> + ... + <A_1n,X_n> >= b_1
 //!       ...
 //!       <A_k1,X_1> + ... + <A_kn,X_n> >= b_k
-//! ```               
+//! ```
 //! where `X_i` are symmetric positive semidefinite of dimension d,
 //!
 //! `A_ji` are constant symmetric matrices and b_i are constant.
 //!
-//! This example is to demonstrate creating and using 
+//! This example is to demonstrate creating and using
 //! many matrix variables of the same dimension.
 
 extern crate mosekcomodel;
@@ -47,7 +47,7 @@ fn main() {
 
     // Pick indexes of diagonal entries for the objective
 
-    m.objective(None,Sense::Minimize, 
+    m.objective(None,Sense::Minimize,
                 X.index([0..n,0..1,0..1])
                     .add(X.index([0..n,1..2,1..2]))
                     .add(X.index([0..n,2..3,2..3])).sum());
@@ -68,7 +68,7 @@ fn main() {
     // Get results. Each variable is a slice of X
     println!("Contributing variables:");
     for j in 0..n {
-        let Xj = m.primal_solution(SolutionType::Default, &X.index([j..j+1, 0..d,0..d])).unwrap();
+        let Xj = m.primal_solution(0, &X.index([j..j+1, 0..d,0..d])).unwrap();
         if Xj.iter().any(|&s| s > 1e-6) {
             println!("X{} = {:?}",j, Xj);
         }

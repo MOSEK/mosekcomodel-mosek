@@ -23,9 +23,9 @@ fn main() {
     model.objective(Some("obj"), Sense::Minimize, x.dot(c));
 
     model.solve();
-    let xsol = model.primal_solution(SolutionType::Default, &x).unwrap();
-    let ssol = model.dual_solution(SolutionType::Default, &x).unwrap();
-    let ysol = model.dual_solution(SolutionType::Default, &con).unwrap();
+    let xsol = model.primal_solution(0, &x).unwrap();
+    let ssol = model.dual_solution(0, &x).unwrap();
+    let ysol = model.dual_solution(0, &con).unwrap();
 
     println!("x1,x2,s1,s2,y = {}, {}, {}, {}, {}", xsol[0], xsol[1], ssol[0], ssol[1], ysol[0]);
 }

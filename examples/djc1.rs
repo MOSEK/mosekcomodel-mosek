@@ -26,7 +26,7 @@ fn djc1() -> (SolutionStatus,Result<Vec<f64>,String>) {
 
     model.disjunction(
         Some("D1"),
-        model.clause(x.index(0..2).dot(vec![1.0,-2.0]), less_than(-1.0))        // x0 - 2x1 <= -1  
+        model.clause(x.index(0..2).dot(vec![1.0,-2.0]), less_than(-1.0))        // x0 - 2x1 <= -1
             .and(model.clause(x.index(2..4),equal_to(0.0)))             // x2 = x3 = 0
             .or(model.clause(x.index(2..4).dot(vec![1.0,-3.0]), less_than(-2.0)) // x2 - 3x3 <= -2
                  .and(model.clause(x.index(0..2), equal_to(0.0)))));   // x0 = x1 = 0
@@ -48,7 +48,7 @@ fn djc1() -> (SolutionStatus,Result<Vec<f64>,String>) {
 
     // Useful for debugging
     model.set_log_handler(|msg| print!("{}",msg));
-    
+
     // Set a callback receiving new integer solutions found
     {
         let x = x.clone();
@@ -58,8 +58,8 @@ fn djc1() -> (SolutionStatus,Result<Vec<f64>,String>) {
     // Solve the problem
     model.solve();
 
-    let (psta,_) = model.solution_status(SolutionType::Default);
-    (psta, model.primal_solution(SolutionType::Integer, &x))
+    let (psta,_) = model.solution_status(0);
+    (psta, model.primal_solution(0, &x))
 }
 
 fn main() {

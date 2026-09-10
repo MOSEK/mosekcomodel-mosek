@@ -1,9 +1,9 @@
 //!
 //!  Copyright: Copyright (c) MOSEK ApS, Denmark. All rights reserved.
-//! 
+//!
 //!  File: lj-outer.rs
 //!
-//!  Computes the Löwner-John outer ellipsoid for a convex polygon. 
+//!  Computes the Löwner-John outer ellipsoid for a convex polygon.
 //!
 extern crate mosekcomodel;
 
@@ -22,11 +22,11 @@ use mosekcomodel::matrix::{speye,dense};
 ///
 ///   | X   Z       |
 ///   |             | ≽ 0
-///   | Z^T Diag(Z) |  
+///   | Z^T Diag(Z) |
 ///
 ///   and a geometric mean bound
 ///
-///   t <= (Z11*Z22*...*Znn)^{1/n} 
+///   t <= (Z11*Z22*...*Znn)^{1/n}
 #[allow(non_snake_case)]
 fn det_rootn(name : Option<&str>, M : &mut Model, t : Variable<0>, n : usize) -> Variable<2> {
     // Setup variables
@@ -68,7 +68,7 @@ fn det_rootn(name : Option<&str>, M : &mut Model, t : Variable<0>, n : usize) ->
 #[allow(non_snake_case)]
 fn lowner_john_outer<const N : usize>(x : &[[f64;N]]) -> Option<(SolutionStatus,SolutionStatus,Vec<f64>,Vec<f64>)> {
     let mut M = Model::new(Some("lownerjohn_outer"));
-    M.set_log_handler(|msg| print!("{}",msg)); 
+    M.set_log_handler(|msg| print!("{}",msg));
 
     let m = x.len();
     let n = N;
@@ -81,23 +81,23 @@ fn lowner_john_outer<const N : usize>(x : &[[f64;N]]) -> Option<(SolutionStatus,
 
     // (1, Px-c) in cone
     _ = M.constraint(Some("qc"),
-                     hstack![ Expr::from(vec![1.0; m]).reshape(&[m,1]), 
+                     hstack![ Expr::from(vec![1.0; m]).reshape(&[m,1]),
                                x.mul(&P).sub(c.repeat(0,m))],
                      in_quadratic_cones(&[m,n+1],1));
 
     // Objective: Maximize t
     M.objective(None,Sense::Maximize, &t);
-    M.solve(); 
+    M.solve();
 
-    let Psol = M.primal_solution(SolutionType::Default, &P);
-    let csol = M.primal_solution(SolutionType::Default, &c);
+    let Psol = M.primal_solution(0, &P);
+    let csol = M.primal_solution(0, &c);
     //P, c = P.level(), c.level()
-    let (psta,dsta) = M.solution_status(SolutionType::Default);
+    let (psta,dsta) = M.solution_status(0);
     if let (Ok(P),Ok(c)) = (Psol,csol) {
         Some((psta,dsta,P,c))
     }
     else {
-        None 
+        None
     }
 }
 
@@ -120,7 +120,7 @@ fn main() {
     else {
         println!("Failed to solve outer ellipsoid problem");
     }
-    
+
 }
 
 #[test]

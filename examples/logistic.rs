@@ -31,7 +31,7 @@ fn softplus<E2>(model : & mut Model, n : usize, t : &Variable<1>, u : E2) where 
 /// - `Y` length n vector classifying training points
 /// - `lamb` regularization parameter
 #[allow(non_snake_case)]
-fn logistic_regression(X : NDArray<2>, 
+fn logistic_regression(X : NDArray<2>,
                        Y : &[bool],
                        lamb : f64) -> (Model,Variable<1>)
 {
@@ -77,8 +77,8 @@ fn main() {
 
     model.set_log_handler(|msg| print!("{}",msg));
     model.solve();
-    
-    let xx = model.primal_solution(SolutionType::Default, &theta).unwrap();
+
+    let xx = model.primal_solution(0, &theta).unwrap();
     println!("theta = {:?}",&xx);
 }
 

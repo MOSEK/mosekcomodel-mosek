@@ -1,4 +1,4 @@
-//! 
+//!
 //! Copyright: Copyright (c) MOSEK ApS, Denmark. All rights reserved.
 //!
 //! File:      diet.rs
@@ -49,8 +49,8 @@ fn diet(daily_allowance : &[f64],
 
     model.solve();
 
-    let res_daily_purchase = model.primal_solution(SolutionType::Default, &daily_purchase).unwrap();
-    let res_daily_nutrients = model.primal_solution(SolutionType::Default, &daily_nutrients).unwrap();
+    let res_daily_purchase = model.primal_solution(0, &daily_purchase).unwrap();
+    let res_daily_nutrients = model.primal_solution(0, &daily_nutrients).unwrap();
 
     Ok((res_daily_purchase,res_daily_nutrients))
 }
@@ -100,7 +100,7 @@ fn main() {
 
     let daily_allowance =
         [   3.0,     70.0,  0.8,    12.0,   5.0,      1.8,    2.7,   18.0,   75.0 ];
-    let (res_purchase, res_nutrients) = diet(&daily_allowance, 
+    let (res_purchase, res_nutrients) = diet(&daily_allowance,
                                              &NDArray::from(&nutritive_value)).unwrap();
 
     println!("Solution:");

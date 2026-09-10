@@ -33,13 +33,13 @@ fn basic_markowitz( n : usize,
     model.constraint(Some("budget"), x.sum(), equal_to(w+x0.iter().sum::<f64>()));
 
     // Imposes a bound on the risk
-    model.constraint(Some("risk"), 
-                     vstack![Expr::from(gamma).reshape(&[1]), 
+    model.constraint(Some("risk"),
+                     vstack![Expr::from(gamma).reshape(&[1]),
                              gt.mul(&x)], in_quadratic_cone());
     // Solves the model.
     model.solve();
 
-    let xlvl = model.primal_solution(SolutionType::Default, &x).unwrap(); 
+    let xlvl = model.primal_solution(0, &x).unwrap();
     mu.iter().zip(xlvl.iter()).map(|(&a,&b)| a*b).sum()
 }
 
@@ -72,4 +72,3 @@ fn main() {
 }
 #[test]
 fn test() { main() }
-

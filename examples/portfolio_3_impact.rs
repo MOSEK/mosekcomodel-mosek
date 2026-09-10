@@ -19,13 +19,13 @@ use mosekcomodel_mosek::Model;
 /// * `n` Number of assets
 /// * `mu` An n dimensional vector of expected returns
 /// * `gt` A matrix with n columns so (GT')*GT  = covariance matrix
-/// * `x0` Initial holdings 
+/// * `x0` Initial holdings
 /// * `w` Initial cash holding
 /// * `gamma` Maximum risk (=std. dev) accepted
 /// * `m` It is assumed that  market impact cost for the j'th asset is `|m_j|x_j-x0_j|^3/2`
 ///
-/// // Returns 
-/// Optimal expected return and the optimal portfolio     
+/// // Returns
+/// Optimal expected return and the optimal portfolio
 fn markowitz_impact(n : usize,
                     mu : &[f64],
                     gt : &NDArray<2>,
@@ -37,11 +37,11 @@ fn markowitz_impact(n : usize,
     // Redirect log output from the solver to stdout for debugging.
     // if uncommented.
     model.set_log_handler(|msg| print!("{}",msg));
-    
+
     // Defines the variables. No shortselling is allowed.
     let x = model.variable(Some("x"), greater_than(vec![0.0; n]));
-    
-    // Variables computing market impact 
+
+    // Variables computing market impact
     let t = model.variable(Some("t"), n);
 
     // Maximize expected return
@@ -51,13 +51,13 @@ fn markowitz_impact(n : usize,
     model.constraint(Some("budget"), x.sum().add(m.dot(&t)), equal_to(w+x0.iter().sum::<f64>()));
 
     // Imposes a bound on the risk
-    model.constraint(Some("risk"), 
-                     vstack![Expr::from(gamma).reshape(&[1]), 
-                             gt.mul(&x)], 
+    model.constraint(Some("risk"),
+                     vstack![Expr::from(gamma).reshape(&[1]),
+                             gt.mul(&x)],
                      in_quadratic_cone());
 
     // t >= |x-x0|^1.5 using a power cone
-    model.constraint(Some("tz"), 
+    model.constraint(Some("tz"),
                      hstack![ t.to_expr().reshape(&[n,1]),
                               Expr::from(vec![1.0;n]).reshape(&[n,1]),
                               x.sub(Expr::from(x0)).reshape(&[n,1]) ],
@@ -65,8 +65,8 @@ fn markowitz_impact(n : usize,
 
     model.solve();
 
-    (model.primal_solution(SolutionType::Default,&x).unwrap(), 
-     model.primal_solution(SolutionType::Default,&t).unwrap())
+    (model.primal_solution(0,&x).unwrap(),
+     model.primal_solution(0,&t).unwrap())
 }
 
 #[allow(non_upper_case_globals)]
@@ -85,7 +85,7 @@ fn main() {
         0.     , 0.     , 0.     , 0.     , 0.     , 0.21552, 0.05663, 0.06187,
         0.     , 0.     , 0.     , 0.     , 0.     , 0.     , 0.22514, 0.03327,
         0.     , 0.     , 0.     , 0.     , 0.     , 0.     , 0.     , 0.2202 ]);
-                  
+
     // Somewhat arbitrary choice of m
     let gamma = 0.36;
     let m = [0.01; n];
@@ -93,7 +93,7 @@ fn main() {
     println!("\n-----------------------------------------------------------------------------------");
     println!("Markowitz portfolio optimization with market impact cost");
     println!("-----------------------------------------------------------------------------------\n");
-    println!("Expected return: {:.4e} Std. deviation: {:.4e} Market impact cost: {:.4e}", 
+    println!("Expected return: {:.4e} Std. deviation: {:.4e} Market impact cost: {:.4e}",
              mu.iter().zip(xsol.iter()).map(|(&m,&z)| m*z).sum::<f64>(),
              gamma,
              m.iter().zip(tsol.iter()).map(|(&m,&t)| m*t).sum::<f64>());
