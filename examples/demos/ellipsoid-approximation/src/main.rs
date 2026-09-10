@@ -132,8 +132,8 @@ fn build_ui(app   : &Application,
 
                     m.solve();
 
-                    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(mosekcomodel::SolutionType::Default,&p),
-                                                  m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
+                    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(0,&p),
+                                                  m.primal_solution(0,&q)) {
 
                         // A² = P => A = sqrt(P)
                         // Ab = q => A\q
@@ -171,8 +171,8 @@ fn build_ui(app   : &Application,
 
                     m.solve();
 
-                    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(mosekcomodel::SolutionType::Default,&p),
-                                                  m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
+                    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(0,&p),
+                                                  m.primal_solution(0,&q)) {
                         let A = DMat2::from_cols_array(&[psol[0],psol[1],psol[2],psol[3]]).inverse();
                         let b = A.mul_vec2(DVec2::from_array([qsol[0],qsol[1]])).to_array();
 

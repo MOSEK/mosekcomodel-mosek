@@ -281,8 +281,8 @@ fn update(time       : Res<Time>,
 
     m.solve();
 
-    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(mosekcomodel::SolutionType::Default,&p),
-                                  m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
+    if let (Ok(psol),Ok(qsol)) = (m.primal_solution(0,&p),
+                                  m.primal_solution(0,&q)) {
         // A² = P => A = sqrt(P)
         // Ab = q => b = A\q
 

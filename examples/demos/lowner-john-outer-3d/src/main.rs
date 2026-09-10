@@ -187,8 +187,8 @@ fn update(time: Res<Time>,
 
         m.solve();
 
-        if let (Ok(psol),Ok(qsol)) = (m.primal_solution(mosekcomodel::SolutionType::Default,&p),
-                                      m.primal_solution(mosekcomodel::SolutionType::Default,&q)) {
+        if let (Ok(psol),Ok(qsol)) = (m.primal_solution(0,&p),
+                                      m.primal_solution(0,&q)) {
 
             let A = DMat3::from_cols_array(&[psol[0],psol[1],psol[2],psol[3],psol[4],psol[5],psol[6],psol[7],psol[8]]).inverse();
             let b = -A.mul_vec3(DVec3::new(qsol[0],qsol[1],qsol[2]));

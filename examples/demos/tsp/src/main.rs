@@ -3,7 +3,7 @@
 //!
 //! Purpose: Demonstrates a simple technique to the TSP and interaction between a GUI and a running
 //! optimization process.
-//! 
+//!
 extern crate mosekcomodel;
 extern crate rand;
 extern crate itertools;
@@ -91,13 +91,13 @@ fn main() {
 
     _ = app.run_with_args::<&str>(&[]);
     for t in threads.take().into_iter() {
-        _ = t.join(); 
+        _ = t.join();
     }
     println!("Main loop exit!");
 }
 
 fn build_ui(app : &Application, conf : Config,points : &Vec<[f64;2]>, threads : Rc<RefCell<Vec<JoinHandle<()>>>>) {
-    let drawdata = Rc::new(RefCell::new(DrawData{ 
+    let drawdata = Rc::new(RefCell::new(DrawData{
         points : points.clone(),
         pobj : 9999999.999,
         sol    : Vec::new(),
@@ -106,7 +106,7 @@ fn build_ui(app : &Application, conf : Config,points : &Vec<[f64;2]>, threads : 
     }));
 
     let darea = DrawingArea::builder()
-        .width_request(1000) 
+        .width_request(1000)
         .height_request(1000)
         .build();
 
@@ -142,7 +142,7 @@ fn build_ui(app : &Application, conf : Config,points : &Vec<[f64;2]>, threads : 
       // thread closes the pipe.
         let darea = darea.clone();
         glib::source::timeout_add_local(
-            Duration::from_millis(50), 
+            Duration::from_millis(50),
             move || {
                 loop {
                     match rx.try_recv() {
@@ -178,7 +178,7 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
     let w : f64 = w.into();
     let h : f64 = h.into();
     let s = w.min(h);
-    
+
     context.set_matrix(cairo::Matrix::new(1.0,0.0,0.0,1.0,0.0,0.0));
 
     context.set_line_width(1.0);
@@ -196,7 +196,7 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
     context.set_line_width(3.0);
     context.set_source_rgb(0.0, 0.0, 0.7);
     for p in data.points.iter() {
-        
+
         context.arc(p[0]*s, p[1]*s, 5.0, 0.0, std::f64::consts::PI*2.0);
         _ = context.stroke();
     }
@@ -212,10 +212,10 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
 }
 
 /// Construct the Model and run the solver while reporting back found solutions.
-fn optimize(conf   : &Config, 
+fn optimize(conf   : &Config,
             points : Vec<[f64;2]>,
             tx     : Sender<Response>,
-            rx     : Receiver<Command>) 
+            rx     : Receiver<Command>)
 {
     let n = conf.n;
     let arc_w = matrix::dense([n,n], iproduct!(points.iter(),points.iter()).map(|(p0,p1)| ((p0[0]-p1[0]).powi(2) + (p0[1]-p1[1]).powi(2)).sqrt()).collect::<Vec<f64>>());
@@ -243,25 +243,25 @@ fn optimize(conf   : &Config,
         let x = x.clone();
         let tx = tx.clone();
         let stop = stop.clone();
-        model.set_int_solution_callback(move |sol| 
+        model.set_int_solution_callback(move |sol|
             if let Ok(xx) = sol.try_get(&x) {
                 _ = tx.send(Response::Solution(sol.obj(),iproduct!(0..n,0..n).zip(xx.iter()).filter_map(|((i,j),&x)| if x > 0.5 { Some((i,j)) } else { None } ).collect::<Vec<(usize,usize)>>()));
             });
         model.set_control_callback(move || {
             match rx.try_recv() {
-                Ok(Command::Terminate) => { 
+                Ok(Command::Terminate) => {
                     *stop.borrow_mut() = true;
                     return std::ops::ControlFlow::Break(());
                 },
                 Err(mpsc::TryRecvError::Empty) => return std::ops::ControlFlow::Continue(()),
                 Err(mpsc::TryRecvError::Disconnected) => {
                     *stop.borrow_mut() = true;
-                    return std::ops::ControlFlow::Break(()); 
+                    return std::ops::ControlFlow::Break(());
                 },
             }
         });
     }
-   
+
     for it in 0.. {
         if *stop.borrow() { break; }
         println!("Iteration {}",it);
@@ -271,7 +271,7 @@ fn optimize(conf   : &Config,
         let mut cycles : Vec<Vec<[usize;2]>> = Vec::new();
 
         for i in 0..n {
-            let xi = model.primal_solution(SolutionType::Default, &(&x).index([i..i+1, 0..n])).unwrap();
+            let xi = model.primal_solution(0, &(&x).index([i..i+1, 0..n])).unwrap();
 
             for (j,_xij) in xi.iter().enumerate().filter(|(_,v)| **v > 0.5) {
                 if let Some(c) = cycles.iter_mut()
@@ -285,8 +285,8 @@ fn optimize(conf   : &Config,
         }
 
         if cycles.len() == 1 {
-            if let Ok(xx) = model.primal_solution(SolutionType::Integer, &x) {
-                let pobj = model.primal_objective(SolutionType::Integer).unwrap_or(9999999.999);
+            if let Ok(xx) = model.primal_solution(0, &x) {
+                let pobj = model.primal_objective(0).unwrap_or(9999999.999);
                 _ = tx.send(Response::Solution(pobj,iproduct!(0..n,0..n).zip(xx.iter()).filter_map(|((i,j),&x)| if x > 0.5 { Some((i,j)) } else { None } ).collect::<Vec<(usize,usize)>>()));
             }
             break;
@@ -295,17 +295,14 @@ fn optimize(conf   : &Config,
         for c in cycles.iter_mut() {
             c.sort_by_key(|i| i[0]*n+i[1]);
             let ni = c.len();
-            model.constraint(Some(format!("cycle-{:?}",c).as_str()), 
-                         x.dot(matrix::sparse([n,n], c.to_vec(), vec![1.0; ni])), 
+            model.constraint(Some(format!("cycle-{:?}",c).as_str()),
+                         x.dot(matrix::sparse([n,n], c.to_vec(), vec![1.0; ni])),
                          less_than((ni-1) as f64));
         }
     }
-    if let Ok(xx) = model.primal_solution(SolutionType::Integer, &x) {
-        let pobj = model.primal_objective(SolutionType::Integer).unwrap_or(9999999.999);
+    if let Ok(xx) = model.primal_solution(0, &x) {
+        let pobj = model.primal_objective(0).unwrap_or(9999999.999);
         _ = tx.send(Response::Solution(pobj,iproduct!(0..n,0..n).zip(xx.iter()).filter_map(|((i,j),&x)| if x > 0.5 { Some((i,j)) } else { None } ).collect::<Vec<(usize,usize)>>()));
     }
     _ = tx.send(Response::Done);
 }
-
-
-

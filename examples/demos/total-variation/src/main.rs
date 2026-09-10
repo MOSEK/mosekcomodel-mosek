@@ -2,7 +2,7 @@
 //! Implements the total variation problem for image improvement. See Donald Goldfarb and Wotao
 //! Yin. Second-order cone programming methods for total variation-based image restoration. SIAM
 //! Journal on Scientific Computing, 27(2):622–645, 2005.
-//! 
+//!
 //! The idea is to minimize the sum of pixel correction to an image, subject to a limit on the
 //! total magniture of the correction.
 //!
@@ -33,7 +33,7 @@ const APP_ID : &str = "com.mosek.total-variation";
 
 
 
-fn main() { 
+fn main() {
     let mut args = std::env::args(); args.next();
     let mut noise = 25.5/255.0;
     let mut sigma = 0.0004;
@@ -50,11 +50,11 @@ fn main() {
                 println!("  FILENAME Name of the file to use instead. Dimensions should probably not be significantly larger than 200x200");
                 return;
             },
-            "--noise"|"-n" => 
+            "--noise"|"-n" =>
                 if let Some(s) = args.next() {
                     noise = s.parse::<f32>().expect("First argument must be a float");
                 },
-            "--dim"|"-d" => 
+            "--dim"|"-d" =>
                 if let Some(s) = args.next() {
                     default_dim = s.parse::<u32>().expect("First argument must be an integer");
                 },
@@ -80,7 +80,7 @@ fn main() {
         let noisy_img : ImageBuffer<Rgb<u8>,Vec<u8>> =
             ImageBuffer::from_raw(
                 default_dim,
-                default_dim, 
+                default_dim,
                 img.pixels()
                     .flat_map(|rgb| rgb.0.iter())
                     .map(|&v| ((v as f32 / 255.0 + noise * (r.random::<f32>()-0.5)).max(0.0).min(1.0)*255.0) as u8)
@@ -109,10 +109,10 @@ struct Data {
     height : u32,
     model_red       : Model,
     ucore_red       : Variable<2>,
-    model_green     : Model, 
-    ucore_green     : Variable<2>, 
-    model_blue      : Model,  
-    ucore_blue      : Variable<2>,  
+    model_green     : Model,
+    ucore_green     : Variable<2>,
+    model_blue      : Model,
+    ucore_blue      : Variable<2>,
 
     sol_red   : Option<Vec<f64>>,
     sol_green : Option<Vec<f64>>,
@@ -120,9 +120,9 @@ struct Data {
 }
 
 impl Data {
-    fn new(img : Option<ImageBuffer<Rgb<u8>,Vec<u8>>>, 
-           noisy_img : ImageBuffer<Rgb<u8>,Vec<u8>>, 
-           sigma : f64) -> Data 
+    fn new(img : Option<ImageBuffer<Rgb<u8>,Vec<u8>>>,
+           noisy_img : ImageBuffer<Rgb<u8>,Vec<u8>>,
+           sigma : f64) -> Data
     {
         let width  = noisy_img.width();
         let height = noisy_img.height();
@@ -153,13 +153,13 @@ impl Data {
     }
     fn solve(&mut self) {
         self.model_red.solve();
-        self.sol_red = Some(self.model_red.primal_solution(SolutionType::Default,&self.ucore_red).unwrap());
+        self.sol_red = Some(self.model_red.primal_solution(0,&self.ucore_red).unwrap());
 
         self.model_blue.solve();
-        self.sol_blue = Some(self.model_blue.primal_solution(SolutionType::Default,&self.ucore_blue).unwrap());
-        
+        self.sol_blue = Some(self.model_blue.primal_solution(0,&self.ucore_blue).unwrap());
+
         self.model_green.solve();
-        self.sol_green = Some(self.model_green.primal_solution(SolutionType::Default,&self.ucore_green).unwrap());
+        self.sol_green = Some(self.model_green.primal_solution(0,&self.ucore_green).unwrap());
     }
 }
 
@@ -177,7 +177,7 @@ fn get_image(filename : Option<String>,default_dim : u32) -> Result<ImageBuffer<
 
                 match k {
                     0 => ((1.0-ii)*(1.0-jj)*255.0) as u8,
-                    1 => ((1.0-ii)*jj*255.0) as u8, 
+                    1 => ((1.0-ii)*jj*255.0) as u8,
                     2 => (ii*jj*255.0) as u8,
                     _ => 0
                 }
@@ -187,7 +187,7 @@ fn get_image(filename : Option<String>,default_dim : u32) -> Result<ImageBuffer<
 }
 
 
-fn bracket(f:f64,l:f64,u:f64) -> f64 { if f < l { l } else if f > u { u } else { f } } 
+fn bracket(f:f64,l:f64,u:f64) -> f64 { if f < l { l } else if f > u { u } else { f } }
 fn build_ui(app  : &Application,
             data : Rc<RefCell<Data>>)
 {
@@ -205,7 +205,7 @@ fn build_ui(app  : &Application,
             let img_texture = Texture::for_pixbuf(&img_pixbuf);
 
             Image::builder()
-                .width_request(data.width as i32) 
+                .width_request(data.width as i32)
                 .height_request(data.height as i32)
                 .paintable(&img_texture)
                 .build()
@@ -221,7 +221,7 @@ fn build_ui(app  : &Application,
         let img_texture = Texture::for_pixbuf(&img_pixbuf);
 
         Image::builder()
-            .width_request(data.width as i32) 
+            .width_request(data.width as i32)
             .height_request(data.height as i32)
             .paintable(&img_texture)
             .build()
@@ -230,7 +230,7 @@ fn build_ui(app  : &Application,
 
     let sol_imgarea = {
         let data = data.borrow();
-        let rgbdata : Vec<u8> = 
+        let rgbdata : Vec<u8> =
             izip!(data.sol_red.as_ref().unwrap().iter(),data.sol_green.as_ref().unwrap().iter(),data.sol_blue.as_ref().unwrap().iter())
             .map(|(&r,&g,&b)| [ (bracket(r,0.0,1.0)*255.0) as u8, (bracket(g,0.0,1.0)*255.0) as u8, (bracket(b,0.0,1.0)*255.0) as u8])
             .flat_map(|rgb| rgb.into_iter())
@@ -240,7 +240,7 @@ fn build_ui(app  : &Application,
         let img_texture = Texture::for_pixbuf(&img_pixbuf);
 
         Image::builder()
-            .width_request(data.width as i32) 
+            .width_request(data.width as i32)
             .height_request(data.height as i32)
             .paintable(&img_texture)
             .build()
@@ -253,7 +253,7 @@ fn build_ui(app  : &Application,
         .title("Total variation")
         .child(&hbox)
         .build();
-    
+
     window.present();
 }
 
@@ -282,7 +282,7 @@ fn total_var(sigma : f64, f : &NDArray<2>) -> (Model,Variable<2>) {
                            u.index((..n,1..)).sub(&ucore).reshape(&[n,m,1])],
                  in_quadratic_cone());
 
-    M.constraint(Some("TotalVar"), 
+    M.constraint(Some("TotalVar"),
                  ((n*m) as f64 * sigma).into_expr().flatten().vstack(ucore.sub(f).flatten()),
                  in_quadratic_cone());
 
@@ -290,4 +290,3 @@ fn total_var(sigma : f64, f : &NDArray<2>) -> (Model,Variable<2>) {
 
     (M,u.index([0..n,0..m]))
 }
-

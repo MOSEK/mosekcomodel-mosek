@@ -107,7 +107,7 @@ impl DrawData {
                 }
             }
         }
-        
+
         // check
 
         if forces.is_empty() {
@@ -129,7 +129,7 @@ impl DrawData {
         }
         println!("Truss:\n\t#nodes: {}\n\t#arcs: {}\n\t#force sets: {}",dd.points.len(),dd.arcs.len(),forces.len());
 
-        dd 
+        dd
     }
 }
 
@@ -138,10 +138,10 @@ const D : usize = 2;
 pub fn main() {
     let mut args = std::env::args();
 
-    if let None = args.next() {  
+    if let None = args.next() {
         println!("Syntax: truss filename");
     }
-    let filename = if let Some (filename) = args.next() { filename } 
+    let filename = if let Some (filename) = args.next() { filename }
     else {
         println!("Syntax: truss filename");
         return;
@@ -153,7 +153,7 @@ pub fn main() {
     let numnodes = drawdata.points.len();
     let numarcs  = drawdata.arcs.len();
 
-    // b is a parameter such that 
+    // b is a parameter such that
     // b is a (numarcs x (D*numnodes)) matrix. Rows are indexes by nodes, colunms are indexed by arcs,
     // so each column has an associated (i,j) ∊ A. The element b_{k,(i,j)} means row k, column
     // associated with (i,j). The matrix is build as
@@ -163,17 +163,17 @@ pub fn main() {
     if dosolve {
         let sqrtkappa = drawdata.kappa.sqrt();
         let b = NDArray::from_iter(
-            [numarcs, numnodes*D], 
+            [numarcs, numnodes*D],
             drawdata.arcs.iter().enumerate().flat_map(|(arci,&(i,j))| {
                 let pi = drawdata.points[i];
                 let pj = drawdata.points[j];
                 let ti = drawdata.node_type[i];
                 let tj = drawdata.node_type[j];
 
-                
+
                 let d = (pj[0]-pi[0], pj[1]-pi[1]);
                 let sqrnormd = d.0.powi(2) + d.1.powi(2);
-                
+
                 std::iter::once(           ([arci, j*D],   if !tj { sqrtkappa * d.0 / sqrnormd } else { 0.0 }))
                     .chain(std::iter::once(([arci, j*D+1], if !tj { sqrtkappa * d.1 / sqrnormd } else { 0.0 })))
                     .chain(std::iter::once(([arci, i*D],   if !ti { -sqrtkappa * d.0 / sqrnormd } else { 0.0 })))
@@ -184,7 +184,7 @@ pub fn main() {
         let mut m = Model::new(Some("Truss"));
         let tau = m.variable(Some("tau"), unbounded());
         //let tau = m.variable(Some("tau"), equal_to(20.0));
-        
+
         let t     = m.variable(Some("t"),unbounded().with_shape(&[numarcs]));
         let sigma = m.variable(Some("sigma"), unbounded().with_shape(&[numforceset,numarcs]));
         let s     = m.variable(Some("s"),unbounded().with_shape(&[numforceset,numarcs]));
@@ -208,14 +208,14 @@ pub fn main() {
             m.constraint(Some("sum_sigma"),
                          tau.sub(sigma.clone().sum()),
                          nonnegative());
-                
-            // (4) 
+
+            // (4)
             m.constraint(Some("total_volume"),
                          t.sum().sub(w.clone()),
                          zero());
             // (5)
             let f : Vec<f64> = forces.iter().flat_map(|row| row.iter()).cloned().collect();
-            m.constraint(Some("force_balance"), 
+            m.constraint(Some("force_balance"),
                          s.into_expr().square_diag().mul(b.clone()).sum_on(&[1]),
                          equal_to(f));
         }
@@ -224,8 +224,8 @@ pub fn main() {
 
         m.write_problem("truss.ptf");
 
-        if let (Ok(tsol),Ok(ssol)) = (m.primal_solution(SolutionType::Default,&t),
-                                      m.primal_solution(SolutionType::Default,&s)) {
+        if let (Ok(tsol),Ok(ssol)) = (m.primal_solution(0,&t),
+                                      m.primal_solution(0,&s)) {
 
             let mut v = vec![0.0; D*numnodes*drawdata.external_force.len()];
             drawdata.arc_vol_stress = Some((tsol.to_vec(),ssol.to_vec()));
@@ -240,7 +240,7 @@ pub fn main() {
                     let jfix = drawdata.node_type[j];
                     let n = numnodes*D;
 
-                    let sqnormij : f64 = pi.iter().zip(pj.iter()).map(|(vi,vj)| (vj-vi).powi(2)).sum(); 
+                    let sqnormij : f64 = pi.iter().zip(pj.iter()).map(|(vi,vj)| (vj-vi).powi(2)).sum();
 
                     let beta_ijx : f64 = if !jfix { (pj[0]-pi[0])/sqnormij } else { 0.0 };
                     let beta_ijy : f64 = if !jfix { (pj[1]-pi[1])/sqnormij } else { 0.0 };
@@ -304,14 +304,14 @@ fn build_ui(app   : &Application,
         .height_request(800)
         .build();
 
-    let vbox = gtk::Box::builder() 
+    let vbox = gtk::Box::builder()
         .orientation(Orientation::Vertical)
         .margin_start(10)
         .margin_end(10)
         .margin_top(10)
         .margin_bottom(10)
         .build();
-    
+
     let mut btns = Vec::with_capacity(ddata.external_force.len()+1);
     {
         let da0 = darea.clone();
@@ -357,7 +357,7 @@ fn build_ui(app   : &Application,
 }
 
 fn norm<const N : usize>(p : &[f64;N]) -> f64 { p.iter().cloned().map(f64::abs).sum::<f64>().sqrt() }
-fn vecsub<const N : usize>(lhs : &[f64;N], rhs : &[f64;N]) -> [f64;N] { 
+fn vecsub<const N : usize>(lhs : &[f64;N], rhs : &[f64;N]) -> [f64;N] {
     let mut r = [0.0;N];
     for (res,&l,&r) in izip!(r.iter_mut(),lhs.iter(),rhs.iter()) {
         *res = l-r;
@@ -365,17 +365,17 @@ fn vecsub<const N : usize>(lhs : &[f64;N], rhs : &[f64;N]) -> [f64;N] {
     r
 }
 
-fn vecscale<const N : usize>(s : f64, v : &[f64;N]) -> [f64;N] { 
+fn vecscale<const N : usize>(s : f64, v : &[f64;N]) -> [f64;N] {
     let mut r = [0.0;N];
     for (r,&v) in r.iter_mut().zip(v.iter()) { *r = s * v; }
     r
 }
 
-fn vecnormalize<const N : usize>(v : &[f64;N]) -> [f64;N] { 
+fn vecnormalize<const N : usize>(v : &[f64;N]) -> [f64;N] {
     vecscale(1.0/norm(v),v)
 }
 
-fn vecadd<const N : usize>(lhs : &[f64;N], rhs : &[f64;N]) -> [f64;N] { 
+fn vecadd<const N : usize>(lhs : &[f64;N], rhs : &[f64;N]) -> [f64;N] {
     let mut r = [0.0;N];
     for (res,&l,&r) in izip!(r.iter_mut(),lhs.iter(),rhs.iter()) {
         *res = l+r;
@@ -443,21 +443,21 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
     // ARCS
     let numarcs = data.arcs.len();
 
-    context.set_source_rgb(0.0, 0.0, 0.0);    
+    context.set_source_rgb(0.0, 0.0, 0.0);
     if let (Some(force_i),Some((ref volume,ref stress))) = (selbtn_i,&data.arc_vol_stress) {
         let stress = &stress[force_i*numarcs..(force_i+1)*numarcs];
 
         for (&(i,j),&v,&s) in izip!(data.arcs.iter(),volume.iter(),stress.iter()) {
             let pi = data.points[i];
             let pj = data.points[j];
-        
+
             if v > 1.0e-4 {
                 let w = (v / norm(&[ pj[0]-pi[0], pj[1]-pi[1] ])).sqrt() * 5.0;
                 if s < 0.0 {
-                    context.set_source_rgb(0.7, 0.0, 0.0);    
-                } 
+                    context.set_source_rgb(0.7, 0.0, 0.0);
+                }
                 else {
-                    context.set_source_rgb(0.0, 0.7, 0.0);    
+                    context.set_source_rgb(0.0, 0.7, 0.0);
                 }
                 context.set_line_width(w*2.0);
                 context.move_to(pi[0], pi[1]);
@@ -473,7 +473,7 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
         for (&(i,j),&v) in izip!(data.arcs.iter(),volume.iter()) {
             let pi = data.points[i];
             let pj = data.points[j];
-        
+
             if v > 1.0e-4 {
                 let w = (v / norm(&[ pj[0]-pi[0], pj[1]-pi[1] ])).sqrt() * 5.0;
                context.set_line_width(w*2.0);
@@ -485,15 +485,15 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
                 context.set_matrix(mx);
             }
         }
-        
+
     }
     else {
-        context.set_source_rgb(0.0, 0.0, 0.0);    
+        context.set_source_rgb(0.0, 0.0, 0.0);
         context.set_line_width(1.0);
         for &(i,j) in data.arcs.iter() {
             let pi = data.points[i];
             let pj = data.points[j];
-        
+
             context.move_to(pi[0], pi[1]);
             context.line_to(pj[0], pj[1]);
 
@@ -524,7 +524,7 @@ fn redraw_window(_widget : &DrawingArea, context : &Context, w : i32, h : i32, d
             context.set_matrix(mx);
         }
     }
-    
+
 }
 
 mod linalg {
@@ -555,7 +555,7 @@ mod linalg {
         // Solve LL'x=v -> L'x=L\b
         for (i,pb) in (0..dim).zip((0..dim).rev().scan(0,|s,i| { let r = *s; *s += i; Some(r) })) {
             let xi = x[i]/diag[i];
-            for (xj,&lj) in izip!(x[i+1..].iter_mut(), L[pb..].iter()) { *xj -= xi * lj; }            
+            for (xj,&lj) in izip!(x[i+1..].iter_mut(), L[pb..].iter()) { *xj -= xi * lj; }
             x[i] = xi;
         }
         // Solve L'x=L\b -> x=L'\L\b
@@ -566,9 +566,8 @@ mod linalg {
             }
             x[i] = xi/diag[i];
         }
-        
+
         Ok(())
     }
 
 }
-
