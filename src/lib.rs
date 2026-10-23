@@ -300,7 +300,7 @@ impl MosekModel {
     /// - `parname` The name is the full name as listed in the MOSEK C manual, that is `MSK_SPAR_...`.
     /// - `parval` Parameter value
     pub fn set_str_parameter(&mut self, parname : &str, parval : &str) -> Result<(),String> {
-        self.task.put_na_str_param(parname, parval)
+        self.task.put_param(parname, parval)
     }
 
     /// Set address and optionally access token for an optserver instance. When this is set it will
